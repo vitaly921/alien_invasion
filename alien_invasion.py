@@ -6,6 +6,7 @@ from pygame.sprite import Group
 from game_stats import GameStats
 from button import Button
 from game_title import GameTitle
+from scoreboard import Scoreboard
 
 
 def run_game():
@@ -25,8 +26,9 @@ def run_game():
     # создание корабля
     ship = Ship(ai_settings, screen)
 
-    # создание экземпляра для хранения статистики
+    # создание экземпляров для хранения и вывода некоторой статистики
     stats = GameStats(ai_settings)
+    sb = Scoreboard(ai_settings, screen, stats)
 
     # создание кнопки Play
     play_button = Button(ai_settings, screen, 'Play')
@@ -47,12 +49,12 @@ def run_game():
     # основной цикл программы
     while True:
         # обработка событий
-        gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button)
+        gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, sb)
 
         # проверка флага состояния игры
         if stats.game_active:
             # обновление позиций пуль и удаление пуль вышедших за верхний край экрана
-            gf.update_bullets(ai_settings, screen, ship, aliens, bullets)
+            gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb)
             # обновление позиции флота пришельцев
             gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets)
             # обновление позиции корабля
@@ -61,7 +63,7 @@ def run_game():
         # обновление позиции фона звёзд
         gf.update_stars(stars)
         # обновления экрана
-        gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, game_title)
+        gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, game_title, sb)
         #clock.tick(300)
 
 # запуск игры

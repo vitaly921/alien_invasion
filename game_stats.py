@@ -12,3 +12,6 @@ class GameStats:
     def reset_stats(self):
         """Задание нового доступного кол-ва кораблей для игры"""
         self.ship_left = self.ai_settings.ship_limit
+        # задание счета игры
+        self.score = 0
+
