@@ -7,7 +7,7 @@ from alien import Alien
 from star import Star
 
 
-def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats):
+def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb):
     """Реагирует на нажатие клавиш"""
     if event.key == pygame.K_ESCAPE:
         sys.exit()
@@ -22,7 +22,7 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
     elif event.key == pygame.K_DOWN:
         ship.moving_down = True
     elif event.key == pygame.K_RETURN or event.key == pygame.K_p:
-        start_game(stats, aliens, bullets, ai_settings, screen, ship)
+        start_game(stats, aliens, bullets, ai_settings, screen, ship, sb)
 
 
 def check_keyup_events(event, ship):
@@ -44,7 +44,7 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
             sys.exit()
         # обработка события нажатия клавиши
         elif event.type == pygame.KEYDOWN:
-            check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats)
+            check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb)
         # обработка события отпускания клавиши
         elif event.type == pygame.KEYUP:
             check_keyup_events(event, ship)
