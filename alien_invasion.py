@@ -32,7 +32,7 @@ def run_game():
 
     # создание кнопки Play
     play_button = Button(ai_settings, screen, 'Play')
-    #
+    # создание экземпляра надписи игры
     game_title = GameTitle(screen)
 
     # создание группы для хранения пуль, флота пришельцев и звезд

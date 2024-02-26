@@ -27,6 +27,7 @@ class Settings:
 
         # темп ускорения игры
         self.speedup_scale = 1.2
+        self.score_scale = 2
 
         # вызов функции, задающей динамически изменяющиеся настройки в начале игры
         self.initialize_dynamic_settings()
@@ -40,7 +41,7 @@ class Settings:
         # задание начальной скорости кораблей пришельцев
         self.alien_speed_factor = 1.5
         # очки за пришельца
-        self.alien_points = 1
+        self.alien_points = 200
         # флаг задания направления (при 1 - вправо, при -1 -влево)
         self.fleet_direction = 1
 
@@ -49,5 +50,6 @@ class Settings:
         self.ship_speed_factor *= self.speedup_scale
         self.bullet_speed_factor *= self.speedup_scale
         self.alien_speed_factor *= self.speedup_scale
+        self.alien_points *= self.score_scale
 
 

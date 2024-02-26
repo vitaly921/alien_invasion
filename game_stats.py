@@ -4,7 +4,7 @@ class GameStats:
         """Инициализация статистики"""
         # флаг состояния игры
         self.game_active = False
-
+        self.high_score = 0
         self.ship_left = None
         self.ai_settings = ai_settings
         self.reset_stats()
@@ -14,4 +14,5 @@ class GameStats:
         self.ship_left = self.ai_settings.ship_limit
         # задание счета игры
         self.score = 0
+        self.level = 1
 

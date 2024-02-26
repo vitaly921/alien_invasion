@@ -63,6 +63,8 @@ def start_game(stats, aliens, bullets, ai_settings, screen, ship, sb):
     # сброс статистики (доступно исходное кол-во попыток для игрока)
     stats.reset_stats()
     sb.prep_score()
+    sb.prep_level()
+    sb.prep_high_score()
     stats.game_active = True
     # очистка группы пришельцев и пуль
     aliens.empty()
@@ -121,7 +123,7 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     ship.blitme()
     aliens.draw(screen)
 
-    # вывод счета игры
+    # вывод счета, рекорда, текущего уровня игры
     sb.show_score()
 
     # отрисовка кнопки Play, надписи названия игры поверх всех объектов,
@@ -133,6 +135,7 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
         bullets.empty()
         stats.reset_stats()
         sb.prep_score()
+        sb.prep_level()
 
     # обновление окна
     pygame.display.flip()
@@ -152,19 +155,26 @@ def update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb):
 def check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb):
     """Обработка столконовений пуль с пришельцами"""
     # удаление пуль и пришельцев во время столкновения
-    collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    collisions = pygame.sprite.groupcollide(bullets, aliens, False, True)
 
     # при попадании пули по пришельцу увеличивается счёт игры и создается новое изображение с текстом счета
     if collisions:
-        stats.score += ai_settings.alien_points
+        for aliens in collisions.values():
+            # значение счёта учитывает все попадания одного снаряда
+            stats.score += ai_settings.alien_points * len(aliens)
+        # формирование и вывод изображения с текстом счёта
         sb.prep_score()
+        # проверка достижения рекордного счёта
+        check_high_score(stats, sb)
 
     # для случая отсутствия флота пришельцев после его уничтожения
     if len(aliens) == 0:
-        # уничтожение оставшихся пуль, увеличение скорости игры и создание нового флота
+        # уничтожение оставшихся пуль, увеличение скорости и уровня игры, создание нового флота пришельцев
         sleep(2.5)
         bullets.empty()
         ai_settings.increase_speed()
+        stats.level += 1
+        sb.prep_level()
         create_fleet(ai_settings, screen, ship, aliens)
 
 
@@ -174,6 +184,15 @@ def fire_bullet(ai_settings, screen, ship, bullets, stats):
         # создание новой пули и включение её в группу bullets
         new_bullet = Bullet(ai_settings, screen, ship)
         bullets.add(new_bullet)
+
+
+def check_high_score(stats, sb):
+    """Проверка достижения нового рекорда"""
+    if stats.score > stats.high_score:
+        # обновление рекорда
+        stats.high_score = stats.score
+        # формирование и вывод изображения с рекордом
+        sb.prep_high_score()
 
 
 def get_number_aliens_x(ai_settings, alien_width):
