@@ -56,7 +56,7 @@ def run_game():
             # обновление позиций пуль и удаление пуль вышедших за верхний край экрана
             gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb)
             # обновление позиции флота пришельцев
-            gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets)
+            gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb)
             # обновление позиции корабля
             ship.update()
 

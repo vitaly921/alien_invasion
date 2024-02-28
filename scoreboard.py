@@ -1,4 +1,6 @@
 import pygame.font
+from pygame.sprite import Group
+from ship import Ship
 
 
 class Scoreboard:
@@ -21,6 +23,24 @@ class Scoreboard:
         self.prep_score()
         self.prep_high_score()
         self.prep_level()
+        self.prep_ships()
+
+    def prep_ships(self):
+        """Отображает кол-во оставшихся корблей у игрока"""
+        # создание группы для хранения экземпляров кораблей
+        self.ships = Group()
+        # заолнение группы доступным кол-вом кораблей
+        for ship_number in range(self.stats.ship_left):
+            ship = Ship(self.ai_settings, self.screen)
+            # установка нового размера для текущего экземпляра
+            ship.image = pygame.transform.scale(ship.image, (50, 50))
+            # установка прозрачности для текущего экземпляра (от 0 до 255)
+            ship.image.set_alpha(200)
+            # задание расположения для каждого корабля группы
+            ship.rect.x = 10 + ship_number * 60
+            ship.rect.y = 0
+            # добавление в группу
+            self.ships.add(ship)
 
     def prep_level(self):
         """Преобразование уровня игры в изображение"""
@@ -54,9 +74,12 @@ class Scoreboard:
         self.high_score_rect.centerx = self.screen_rect.centerx
         self.high_score_rect.top = self.score_rect.top
 
+    def show_high_score(self):
+        """Вывод рекорда игры"""
+        self.screen.blit(self.high_score_image, self.high_score_rect)
 
     def show_score(self):
-        """Вывод счёта игры на экран"""
+        """Вывод счёта игры, уровня, кол-ва доступных кораблей на экране"""
         self.screen.blit(self.score_image, self.score_rect)
-        self.screen.blit(self.high_score_image, self.high_score_rect)
         self.screen.blit(self.level_image, self.level_rect)
+        self.ships.draw(self.screen)

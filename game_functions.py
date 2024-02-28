@@ -60,11 +60,14 @@ def start_game(stats, aliens, bullets, ai_settings, screen, ship, sb):
     """Функция настройки игровых элементов при старте игры"""
     # скрытие курсора мыши
     pygame.mouse.set_visible(False)
-    # сброс статистики (доступно исходное кол-во попыток для игрока)
-    stats.reset_stats()
+    # сброс статистики (обнуление счёта, возврат на 1 уровень, возврат кол-ва попыток игры)
+    #stats.reset_stats()
+    # отрисовка статистических данных и изображение доступных кораблей (попыток игры)
     sb.prep_score()
     sb.prep_level()
-    sb.prep_high_score()
+    #sb.prep_high_score()
+    sb.prep_ships()
+    # переход игры в активный режим
     stats.game_active = True
     # очистка группы пришельцев и пуль
     aliens.empty()
@@ -123,19 +126,22 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     ship.blitme()
     aliens.draw(screen)
 
-    # вывод счета, рекорда, текущего уровня игры
-    sb.show_score()
+    # отображение рекорда
+    sb.show_high_score()
 
-    # отрисовка кнопки Play, надписи названия игры поверх всех объектов,
-    # очистка экаран от пришельцев и пуль, сброс статистики при неактивном состоянии игры
+    # отрисовка кнопки Play, надписи названия игры поверх всех объектов, очистка экрана от пришельцев и пуль
     if not stats.game_active:
         game_title.blitme()
         play_button.draw_button()
         aliens.empty()
         bullets.empty()
-        stats.reset_stats()
-        sb.prep_score()
-        sb.prep_level()
+        #stats.reset_stats()
+        #sb.prep_score()
+        #sb.prep_level()
+    else:
+        # отображение текущего счёта, уровня и доступных кораблей для игры
+        sb.show_score()
+        pass
 
     # обновление окна
     pygame.display.flip()
@@ -312,12 +318,14 @@ def change_fleet_direction(ai_settings, aliens):
     ai_settings.fleet_direction *= -1
 
 
-def ship_hit(ai_settings, stats, screen, ship, aliens, bullets):
+def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb):
     """Обработка столкновения корабля с флотом пришельцев / достижения флотом нижнего края экрана
     и переход игры в начальное состояние"""
-    if stats.ship_left > 0:
+    if stats.ship_left > 1:
         # уменьшение значения оставшихся кораблей
         stats.ship_left -= 1
+        # обновление изображения с доступным кол-вом кораблей
+        sb.prep_ships()
         # очистка групп пришельцев и пуль
         aliens.empty()
         bullets.empty()
@@ -326,25 +334,29 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets):
         # задание паузы
         sleep(1.5)
     else:
-        # переход игры в неактивное состояние и отображение курсора мыши
+        # переход игры в неактивное состояние
         stats.game_active = False
+        # сброс статистики
+        stats.reset_stats()
+        #sb.prep_ships()
+        # отображение курсора мыши
         pygame.mouse.set_visible(True)
         sleep(1.5)
 
     ship.center_ship()
 
 
-def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets):
+def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb):
     """Проверка достижения флотом нижнего края экрана"""
     screen_rect = screen.get_rect()
     # при достижении кораблем флота нижнего края экрана игра переходит в начальное состояние
     for alien in aliens.sprites():
         if alien.rect.bottom >= screen_rect.bottom:
-            ship_hit(ai_settings, stats, screen, ship, aliens, bullets)
+            ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb)
             break
 
 
-def update_aliens(ai_settings, stats, screen, ship, aliens, bullets):
+def update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb):
     """Обновление позиций всех пришельцев во флоте,
      обработка столкновений флота с кораблем игрока
      обработка достижения флотом нижнего края экрана"""
@@ -355,9 +367,9 @@ def update_aliens(ai_settings, stats, screen, ship, aliens, bullets):
     # проверка и реакция на обнаружение коллизии между кораблем и флотом
     if pygame.sprite.spritecollideany(ship, aliens):
         # переход игры в начальное состояние
-        ship_hit(ai_settings, stats, screen, ship, aliens, bullets)
+        ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb)
     # проверка достижения флотом нижнего края экрана
-    check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets)
+    check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb)
 
 
 def check_stars_edges(stars):

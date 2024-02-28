@@ -15,7 +15,6 @@ class Alien(Sprite):
         self.image = pygame.image.load('images/alien.png')
         self.image = pygame.transform.scale(self.image, (60, 40))
         self.image = self.image.convert_alpha()
-        #self.image.set_alpha(50)
         self.rect = self.image.get_rect()
 
         # задание координат для отображения корабля

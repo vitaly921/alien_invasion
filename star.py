@@ -10,8 +10,9 @@ class Star(Sprite):
         super().__init__()
         self.screen = screen
 
-        # загрузка изображения звезды, его конвертация и взятие прямогульной отрисовки
+        # загрузка изображения звезды, установка прозрачности, конвертация и взятие прямогульной отрисовки
         self.image = pygame.image.load('images/star.png')
+        self.image.set_alpha(150)
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
         self.y = float(self.rect.y)
