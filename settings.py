@@ -46,7 +46,7 @@ class Settings:
         self.fleet_direction = 1
 
     def increase_speed(self):
-        """Увеличение значений скорости игровых элементов"""
+        """Увеличение значений скорости игровых объектов"""
         self.ship_speed_factor *= self.speedup_scale
         self.bullet_speed_factor *= self.speedup_scale
         self.alien_speed_factor *= self.speedup_scale

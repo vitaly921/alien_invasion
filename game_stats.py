@@ -4,15 +4,18 @@ class GameStats:
         """Инициализация статистики"""
         # флаг состояния игры
         self.game_active = False
-        self.high_score = 0
-        self.ship_left = None
+        # получение значения рекорда из файла
+        with open('record.txt', 'r') as f:
+            self.high_score = f.read()
+        # инициализация настроек и функции сброса статистики
         self.ai_settings = ai_settings
         self.reset_stats()
 
     def reset_stats(self):
-        """Задание нового доступного кол-ва кораблей для игры"""
+        """Сброс некоторых статистических данных игры"""
+        # установка кол-ва попыток по умолчанию
         self.ship_left = self.ai_settings.ship_limit
-        # задание счета игры
+        # сброс счёта и уровня игры
         self.score = 0
         self.level = 1
 

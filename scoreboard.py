@@ -12,21 +12,25 @@ class Scoreboard:
         self.ai_settings = ai_settings
         self.stats = stats
 
-        # настройки шрифта для вывода счёта игры
+        # задание цвета шрифт
         self.text_color = 'white'
-        # создание экземпляра объекта шрифта
-        self.font = pygame.font.SysFont('calibri', 36)
+        # создание экземпляра объекта шрифта с заданным стилем и размером
+        self.font = pygame.font.SysFont('calibre', 36)
+        # настройки жирности шрифта
         self.font.set_bold(False)
+        # вызов функции для создания изображений с характеристиками игры
+        self.prep_images()
 
-
-        # подготовка исходного изображения счёта, рекорда, текущего уровня
+    def prep_images(self):
+        """Функция подготовки изображений с характеристиками игры"""
+        # подготовка исходного изображения счёта, рекорда, текущего уровня, кол-ва оставшихся кораблей
         self.prep_score()
         self.prep_high_score()
         self.prep_level()
         self.prep_ships()
 
     def prep_ships(self):
-        """Отображает кол-во оставшихся корблей у игрока"""
+        """Отображает кол-во оставшихся кораблей у игрока"""
         # создание группы для хранения экземпляров кораблей
         self.ships = Group()
         # заолнение группы доступным кол-вом кораблей
@@ -64,7 +68,7 @@ class Scoreboard:
     def prep_high_score(self):
         """Преобразование рекордного значения счёта в изображение"""
         # сохранение максимального значения счёта
-        high_score = self.stats.high_score
+        high_score = int(self.stats.high_score)
         # задание текстового формата рекорда
         high_score_str = 'Record: ' + '{:,}'.format(high_score).replace(',', ' ')
         # генерация изображения с текстом рекорда
