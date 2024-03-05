@@ -30,8 +30,9 @@ def run_game():
     stats = GameStats(ai_settings)
     sb = Scoreboard(ai_settings, screen, stats)
 
-    # создание кнопки Play
+    # создание кнопки Play и Pause
     play_button = Button(ai_settings, screen, 'Play')
+    pause_button = Button(ai_settings, screen, 'Pause')
     # создание экземпляра надписи игры
     game_title = GameTitle(screen)
 
@@ -45,11 +46,13 @@ def run_game():
     # создание группы звезд на экране
     gf.create_stars(ai_settings, screen, stars)
 
+    pause = False
+
     clock = pygame.time.Clock()
     # основной цикл программы
     while True:
         # обработка событий
-        gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, sb)
+        gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, sb, pause)
 
         # проверка флага состояния игры
         if stats.game_active:
@@ -59,6 +62,7 @@ def run_game():
             gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb)
             # обновление позиции корабля
             ship.update()
+
 
         # обновление позиции фона звёзд
         gf.update_stars(stars)

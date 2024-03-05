@@ -7,7 +7,7 @@ from alien import Alien
 from star import Star
 
 
-def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb):
+def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb, pause, pause_button):
     """Реагирует на нажатие клавиш"""
     if event.key == pygame.K_ESCAPE:
         # запись в файл обновленного значения рекорда
@@ -26,9 +26,38 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
         ship.moving_up = True
     elif event.key == pygame.K_DOWN:
         ship.moving_down = True
-    elif event.key == pygame.K_RETURN or event.key == pygame.K_p:
+    elif event.key == pygame.K_RETURN and not stats.game_active:
         # вызов функции для начала игры
         start_game(stats, aliens, bullets, ai_settings, screen, ship, sb)
+    elif event.key == pygame.K_p and stats.game_active:
+        pause_game(ship, stats, pause, pause_button)
+
+
+def pause_game(ship, stats, pause, pause_button):
+    """"""
+    pause = not pause
+
+    ship.moving_left = False
+    ship.moving_right = False
+    ship.moving_up = False
+    ship.moving_down = False
+
+    while pause:
+        stats.game_active = False
+        pause_button.draw_button()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p or event.key == pygame.K_SPACE:
+                    pause = False
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    quit()
+        pygame.display.flip()
+    stats.game_active = True
 
 
 def check_keyup_events(event, ship):
@@ -43,7 +72,7 @@ def check_keyup_events(event, ship):
         ship.moving_down = False
 
 
-def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, sb):
+def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, sb, pause):
     """Обработка событий в игре"""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -53,7 +82,7 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
             sys.exit()
         # обработка события нажатия клавиши
         elif event.type == pygame.KEYDOWN:
-            check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb)
+            check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb, pause, pause_button)
         # обработка события отпускания клавиши
         elif event.type == pygame.KEYUP:
             check_keyup_events(event, ship)
