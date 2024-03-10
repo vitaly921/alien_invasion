@@ -34,8 +34,9 @@ class Scoreboard:
         # создание группы для хранения экземпляров кораблей
         self.ships = Group()
         # заолнение группы доступным кол-вом кораблей
+        self.number_ship = 3
         for ship_number in range(self.stats.ship_left):
-            ship = Ship(self.ai_settings, self.screen)
+            ship = Ship(self.ai_settings, self.screen, self.number_ship)
             # установка нового размера для текущего экземпляра
             ship.image = pygame.transform.scale(ship.image, (50, 50))
             # установка прозрачности для текущего экземпляра (от 0 до 255)
@@ -45,6 +46,7 @@ class Scoreboard:
             ship.rect.y = 0
             # добавление в группу
             self.ships.add(ship)
+            self.number_ship -= 1
 
     def prep_level(self):
         """Преобразование уровня игры в изображение"""

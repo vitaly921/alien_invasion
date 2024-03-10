@@ -24,7 +24,7 @@ def run_game():
     pygame.display.set_icon(icon)
 
     # создание корабля
-    ship = Ship(ai_settings, screen)
+    #ship = Ship(ai_settings, screen)
 
     # создание экземпляров для хранения и вывода некоторой статистики
     stats = GameStats(ai_settings)
@@ -40,7 +40,16 @@ def run_game():
     bullets = Group()
     aliens = Group()
     stars = Group()
+    ships = Group()
 
+    for ship_number in range(3):
+        ship = Ship(ai_settings, screen, ship_number+1)
+        ships.add(ship)
+
+    print(ships)
+    i = 0
+    print(i)
+    ship = ships.sprites()[i]
     # создание флота пришельцев
     gf.create_fleet(ai_settings, screen, ship, aliens)
     # создание группы звезд на экране
@@ -59,7 +68,7 @@ def run_game():
             # обновление позиций пуль и удаление пуль вышедших за верхний край экрана
             gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb)
             # обновление позиции флота пришельцев
-            gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb)
+            i, ship = gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb, i, ships)
             # обновление позиции корабля
             ship.update()
 

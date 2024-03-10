@@ -5,6 +5,7 @@ from random import randint
 from bullet import Bullet
 from alien import Alien
 from star import Star
+from ship import Ship
 
 
 def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb, pause, pause_button):
@@ -283,6 +284,7 @@ def create_alien(ai_settings, screen, aliens, alien_number, row_number):
 
 def create_fleet(ai_settings, screen, ship, aliens):
     """Создание флота пришельцев"""
+
     # создание экземпляра пришельца для вычисления его ширины и высоты
     alien = Alien(ai_settings, screen)
     # вычисление количества пришельцев в ряду
@@ -367,6 +369,9 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb):
     if stats.ship_left > 1:
         # уменьшение значения оставшихся кораблей
         stats.ship_left -= 1
+        #ship.number_ship += 1
+        #new_ship = Ship(ai_settings, screen, 3)
+        #ship = new_ship
         # обновление изображения с доступным кол-вом кораблей
         sb.prep_ships()
         # очистка групп пришельцев и пуль
@@ -385,7 +390,6 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb):
         # отображение курсора мыши
         pygame.mouse.set_visible(True)
         sleep(1.5)
-
     ship.center_ship()
 
 
@@ -404,9 +408,10 @@ def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullet
     if pygame.sprite.spritecollideany(ship, aliens):
         # переход игры в начальное состояние
         ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb)
+        return True
 
 
-def update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb):
+def update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb, i, ships):
     """Обновление позиций всех пришельцев во флоте,
      обработка столкновений флота с кораблем игрока
      обработка достижения флотом нижнего края экрана"""
@@ -415,9 +420,16 @@ def update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb):
     # обновление позиции флота
     aliens.update()
     # проверка и реакция на обнаружение коллизии между кораблем и флотом
-    check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb)
+    if check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb) and i < 2:
+        i += 1
+        ship = ships.sprites()[i]
+        print('dddd')
+        return i, ship
+    if i == 2:
+        i =-1
     # проверка достижения флотом нижнего края экрана
     check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb)
+    return i, ship
 
 
 def check_stars_edges(stars):
