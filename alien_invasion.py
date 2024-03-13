@@ -36,25 +36,25 @@ def run_game():
     # создание экземпляра надписи игры
     game_title = GameTitle(screen)
 
-    # создание группы для хранения пуль, флота пришельцев и звезд
+    # создание группы для хранения пуль, кораблей игрока, флота пришельцев и звезд
     bullets = Group()
     aliens = Group()
     stars = Group()
     ships = Group()
 
-    for ship_number in range(3):
-        ship = Ship(ai_settings, screen, ship_number+1)
-        ships.add(ship)
+    # наполнение группы кораблей различными экземплярами
+    ships = gf.create_ships(ai_settings, screen, ships)
+    # индекс для корабля группы
+    number_ship = 0
+    # получение экземпляра корабля из группы с определенным индексом
+    ship = ships.sprites()[number_ship]
 
-    print(ships)
-    i = 0
-    print(i)
-    ship = ships.sprites()[i]
     # создание флота пришельцев
     gf.create_fleet(ai_settings, screen, ship, aliens)
     # создание группы звезд на экране
     gf.create_stars(ai_settings, screen, stars)
 
+    # состояние паузы
     pause = False
 
     clock = pygame.time.Clock()
@@ -67,8 +67,10 @@ def run_game():
         if stats.game_active:
             # обновление позиций пуль и удаление пуль вышедших за верхний край экрана
             gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb)
+            # обновление кораблей игрока после столкновения с флотом пришельцев
+            number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb)
             # обновление позиции флота пришельцев
-            i, ship = gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb, i, ships)
+            gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb)
             # обновление позиции корабля
             ship.update()
 

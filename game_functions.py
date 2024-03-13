@@ -229,6 +229,18 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship):
         create_fleet(ai_settings, screen, ship, aliens)
 
 
+def create_ships(ai_settings, screen, ships):
+    """Создание группы кораблей*"""
+    # создание экземпляров кораблей и добавление их в группу
+    for ship_number in range(ai_settings.ship_limit):
+        # создание экземпляра корабля
+        ship = Ship(ai_settings, screen, ship_number+1)
+        # добавление экземпляра в группу
+        ships.add(ship)
+    # возврат группы
+    return ships
+
+
 def fire_bullet(ai_settings, screen, ship, bullets, stats):
     """Позволяет совершить выстрел если максимум пуль еще не достигнут"""
     if len(bullets) < ai_settings.bullets_allowed and stats.game_active:
@@ -411,25 +423,34 @@ def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullet
         return True
 
 
-def update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb, i, ships):
+def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb):
+    """Обновление корабля на экране при столкновении с флотом пришельцев"""
+    # проверка столкновения корабля игрока и пришельца и обновление корабля игрока, если корабль не последний в группе
+    if (check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb) and
+            number_ship < ai_settings.ship_limit-1):
+        # увеличение индекса для получения нового корабля из группы
+        number_ship += 1
+        # создание нового корабля
+        ship = ships.sprites()[number_ship]
+        # возврат обновленного индекса и корабля
+        return number_ship, ship
+    # для случая если корабль последний в группе
+    elif number_ship == ai_settings.ship_limit-1:
+        # индекс сбрасывается до нуля
+        number_ship = -1
+        #ship = ships.sprites()[number_ship]
+    return number_ship, ship
+
+
+def update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb):
     """Обновление позиций всех пришельцев во флоте,
-     обработка столкновений флота с кораблем игрока
      обработка достижения флотом нижнего края экрана"""
     # проверка достижения флотом края экрана
     check_fleet_edges(ai_settings, aliens)
     # обновление позиции флота
     aliens.update()
-    # проверка и реакция на обнаружение коллизии между кораблем и флотом
-    if check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb) and i < 2:
-        i += 1
-        ship = ships.sprites()[i]
-        print('dddd')
-        return i, ship
-    if i == 2:
-        i =-1
     # проверка достижения флотом нижнего края экрана
     check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb)
-    return i, ship
 
 
 def check_stars_edges(stars):
