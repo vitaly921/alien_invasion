@@ -69,11 +69,12 @@ def run_game():
             gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb)
             # обновление кораблей игрока после столкновения с флотом пришельцев
             number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb)
+            #print(number_ship)
+            #print(ships.sprites())
             # обновление позиции флота пришельцев
             gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb)
             # обновление позиции корабля
             ship.update()
-
 
         # обновление позиции фона звёзд
         gf.update_stars(stars)

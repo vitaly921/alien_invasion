@@ -33,15 +33,18 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
     elif event.key == pygame.K_p and stats.game_active:
         pause_game(ship, stats, pause, pause_button)
 
+def reset_moving_flags_ship(ship):
+    """Сброс флагов движения корабля"""
+    ship.moving_left = False
+    ship.moving_right = False
+    ship.moving_up = False
+    ship.moving_down = False
 
 def pause_game(ship, stats, pause, pause_button):
     """"""
     pause = not pause
 
-    ship.moving_left = False
-    ship.moving_right = False
-    ship.moving_up = False
-    ship.moving_down = False
+    reset_moving_flags_ship(ship)
 
     while pause:
         stats.game_active = False
@@ -97,6 +100,9 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
 
 def start_game(stats, aliens, bullets, ai_settings, screen, ship, sb):
     """Функция настройки игровых элементов при старте игры"""
+    # сброс скоростей игровых элементов
+    ai_settings.initialize_dynamic_settings()
+    reset_moving_flags_ship(ship)
     # скрытие курсора мыши
     pygame.mouse.set_visible(False)
     # вызов функции для отрисовки статистических данных (счет, рекорд, уровень, оставшиеся корабли) в виде изображений
@@ -117,8 +123,6 @@ def check_play_button(stats, play_button, mouse_x, mouse_y, ship, aliens, bullet
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
     # запуск новой игры в активном состоянии при нажатии мыши на кнопку Play и текущем неактивном состоянии игры
     if button_clicked and not stats.game_active:
-        # сброс скоростей игровых элементов
-        ai_settings.initialize_dynamic_settings()
         # вызов функции настройки игровых элементов при старте
         start_game(stats, aliens, bullets, ai_settings, screen, ship, sb)
 
@@ -174,7 +178,6 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     else:
         # отображение текущего счёта, уровня и доступных кораблей для игры
         sb.show_score()
-        pass
 
     # обновление окна
     pygame.display.flip()
@@ -215,6 +218,7 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship):
     """Функция проверки и перехода игры на новый уровень"""
     # для случая отсутствия флота пришельцев после его уничтожения
     if len(aliens) == 0:
+        reset_moving_flags_ship(ship)
         # уничтожение оставшихся пуль, увеличение скорости и уровня игры, создание нового флота пришельцев
         sleep(2.5)
         # очистка списка оставшихся пуль
@@ -384,6 +388,7 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb):
         #ship.number_ship += 1
         #new_ship = Ship(ai_settings, screen, 3)
         #ship = new_ship
+        print('осталось кораблей ' + str(stats.ship_left))
         # обновление изображения с доступным кол-вом кораблей
         sb.prep_ships()
         # очистка групп пришельцев и пуль
@@ -394,8 +399,10 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb):
         # задание паузы
         sleep(1.5)
     else:
+        print('Кораблей не осталось')
         # переход игры в неактивное состояние
         stats.game_active = False
+        reset_moving_flags_ship(ship)
         # сброс статистики
         stats.reset_stats()
         #sb.prep_ships()
@@ -418,6 +425,7 @@ def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb):
 def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb):
     """Проверка и реакция на столкновение корабля с флотом пришельцев"""
     if pygame.sprite.spritecollideany(ship, aliens):
+        reset_moving_flags_ship(ship)
         # переход игры в начальное состояние
         ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb)
         return True
@@ -425,20 +433,23 @@ def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullet
 
 def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb):
     """Обновление корабля на экране при столкновении с флотом пришельцев"""
-    # проверка столкновения корабля игрока и пришельца и обновление корабля игрока, если корабль не последний в группе
-    if (check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb) and
-            number_ship < ai_settings.ship_limit-1):
-        # увеличение индекса для получения нового корабля из группы
+    # проверка столкновения корабля игрока и пришельца
+    collision = check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb)
+    # если столкновение случилось и индекс корабля не последний
+    if collision and number_ship != ai_settings.ship_limit-1:
+        print('stats.ship_left: ' + str(stats.ship_left))
+        # увеличение индекса корабля в группе
         number_ship += 1
-        # создание нового корабля
-        ship = ships.sprites()[number_ship]
-        # возврат обновленного индекса и корабля
-        return number_ship, ship
-    # для случая если корабль последний в группе
-    elif number_ship == ai_settings.ship_limit-1:
-        # индекс сбрасывается до нуля
-        number_ship = -1
+        # получение следующего корабля из группы
         #ship = ships.sprites()[number_ship]
+    # если столкновение случилось и индекс корабля последний
+    elif collision and number_ship == ai_settings.ship_limit-1:
+        # индекс сбрасывается до нуля
+        number_ship = 0
+        # получение первого корабля из группы
+        #ship = ships.sprites()[number_ship]
+    ship = ships.sprites()[number_ship]
+    # возврат обновлённого индекса и корабля группы
     return number_ship, ship
 
 
