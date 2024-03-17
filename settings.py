@@ -23,7 +23,7 @@ class Settings:
 
         # настройки для флота пришельцев (кроме скорости)
         #self.alien_speed_factor = 1.5
-        self.fleet_drop_speed = 10
+        self.fleet_drop_speed = 20
 
         # темп ускорения игры
         self.speedup_scale = 1.2
@@ -39,7 +39,7 @@ class Settings:
         # задание начальной скорости пуль
         self.bullet_speed_factor = 7
         # задание начальной скорости кораблей пришельцев
-        self.alien_speed_factor = 1.5
+        self.alien_speed_factor = 8.5
         # очки за пришельца
         self.alien_points = 200
         # флаг задания направления (при 1 - вправо, при -1 -влево)

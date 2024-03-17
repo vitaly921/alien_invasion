@@ -72,8 +72,8 @@ def run_game():
             #print(number_ship)
             #print(ships.sprites())
             # обновление позиции флота пришельцев
-            gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets, sb)
-            # обновление позиции корабля
+            gf.update_aliens(ai_settings, aliens)
+            # обновление позиции корабля игрока
             ship.update()
 
         # обновление позиции фона звёзд

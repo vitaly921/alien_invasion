@@ -18,4 +18,5 @@ class GameStats:
         # сброс счёта и уровня игры
         self.score = 0
         self.level = 1
-
+        # сброс словаря с уровнем и значением счёта
+        self.score_dict = {0: 0}
