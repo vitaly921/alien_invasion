@@ -5,6 +5,7 @@ class Button:
     """Класс для создания кнопки Play"""
     def __init__(self, ai_settings, screen, msg):
         """Инициализирует атрибуты кнопки"""
+        self.msg = msg
         self.msg_image_rect = None
         self.msg_image = None
         self.screen = screen
@@ -18,7 +19,7 @@ class Button:
 
         # построение прямоугольника кнопки, задание размеров и расположения
         self.rect = pygame.Rect(0, 0, self.width, self.height)
-        self.rect.centerx = self.screen_rect.centerx
+        self.rect.centerx = self.screen_rect.centerx * 1
         self.rect.centery = self.screen_rect.centery * 1.25
 
         # вывод текста на кнопке

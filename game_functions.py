@@ -33,12 +33,14 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
     elif event.key == pygame.K_p and stats.game_active:
         pause_game(ship, stats, pause, pause_button)
 
+
 def reset_moving_flags_ship(ship):
     """Сброс флагов движения корабля"""
     ship.moving_left = False
     ship.moving_right = False
     ship.moving_up = False
     ship.moving_down = False
+
 
 def pause_game(ship, stats, pause, pause_button):
     """"""
@@ -96,7 +98,13 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
             mouse_x, mouse_y = pygame.mouse.get_pos()
             # проверка нажатия клавиши в пределах кнопки и запуск игры заново в активном состоянии
             check_play_button(stats, play_button, mouse_x, mouse_y, ship, aliens, bullets, ai_settings, screen, sb)
-
+        elif event.type == pygame.MOUSEMOTION:
+            if play_button.rect.collidepoint(event.pos):
+                play_button.button_color = (148, 0, 0)
+                play_button.prep_msg(play_button.msg)
+            else:
+                play_button.button_color = (40, 130, 50)
+                play_button.prep_msg(play_button.msg)
 
 def start_game(stats, aliens, bullets, ai_settings, screen, ship, sb):
     """Функция настройки игровых элементов при старте игры"""
