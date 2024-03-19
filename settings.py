@@ -32,6 +32,14 @@ class Settings:
         # вызов функции, задающей динамически изменяющиеся настройки в начале игры
         self.initialize_dynamic_settings()
 
+        # параметры кнопок игры
+        self.button_width = 300
+        self.button_height = 75
+        self.button_color = (30, 120, 20)
+        self.button_text_color = (240, 255, 250)
+        self.button_text_size = 70
+        self.button_text_type = None
+
     def initialize_dynamic_settings(self):
         """Инициализация настроек, изменяющихся по ходу игры"""
         # задание начальной скорости корабля игрока
@@ -40,9 +48,9 @@ class Settings:
         self.bullet_speed_factor = 7
         # задание начальной скорости кораблей пришельцев
         self.alien_speed_factor = 8.5
-        # очки за пришельца
+        # стартовые очки за пришельца
         self.alien_points = 200
-        # флаг задания направления (при 1 - вправо, при -1 -влево)
+        # начальный флаг задания направления (при 1 - вправо, при -1 -влево)
         self.fleet_direction = 1
 
     def increase_speed(self):

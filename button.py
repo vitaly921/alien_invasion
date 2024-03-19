@@ -3,24 +3,22 @@ import pygame.font
 
 class Button:
     """Класс для создания кнопки Play"""
-    def __init__(self, ai_settings, screen, msg):
+    def __init__(self, ai_settings, screen, msg, pos_x, pos_y):
         """Инициализирует атрибуты кнопки"""
         self.msg = msg
-        self.msg_image_rect = None
-        self.msg_image = None
         self.screen = screen
         self.screen_rect = screen.get_rect()
 
         # задание размеров, цветов кнопки и текста
-        self.width, self.height = 200, 50
-        self.button_color = (40, 130, 50)
-        self.text_color = (240, 255, 250)
-        self.font = pygame.font.SysFont(None, 48)
+        self.width, self.height = ai_settings.button_width, ai_settings.button_height
+        self.button_color = ai_settings.button_color
+        self.text_color = ai_settings.button_text_color
+        self.font = pygame.font.SysFont(ai_settings.button_text_type, ai_settings.button_text_size)
 
         # построение прямоугольника кнопки, задание размеров и расположения
         self.rect = pygame.Rect(0, 0, self.width, self.height)
-        self.rect.centerx = self.screen_rect.centerx * 1
-        self.rect.centery = self.screen_rect.centery * 1.25
+        self.rect.centerx = self.screen_rect.centerx * pos_x
+        self.rect.centery = self.screen_rect.centery * pos_y
 
         # вывод текста на кнопке
         self.prep_msg(msg)
