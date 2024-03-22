@@ -5,6 +5,7 @@ import game_functions as gf
 from pygame.sprite import Group
 from game_stats import GameStats
 from button import Button
+from hint import Hint
 from game_title import GameTitle
 from scoreboard import Scoreboard
 
@@ -33,9 +34,16 @@ def run_game():
     # создание кнопки Play, Pause, About It
     play_button = Button(ai_settings, screen, 'Play', 1, 1.1)
     pause_button = Button(ai_settings, screen, 'Pause', 1, 1.25)
-    about_it_button = Button(ai_settings, screen, 'About It', 1, 1.4)
+    about_it_button = Button(ai_settings, screen, 'About It', 1, 1.35)
+    back_button = Button(ai_settings, screen, 'Back', 0.5, 1.85)
+    exit_button = Button(ai_settings, screen, 'Exit', 1, 1.6)
+
     # создание экземпляра надписи игры
     game_title = GameTitle(screen)
+
+    hint_for_play_button = Hint(ai_settings.hint_for_play_button, screen, 1, 0.9)
+    hint_for_pause_button = Hint(ai_settings.hint_for_pause_button, screen, 1, 1.5)
+    hint_for_about_it_button = Hint('Это игра про какую-то дич', screen, 1, 1)
 
     # создание группы для хранения пуль, кораблей игрока, флота пришельцев и звезд
     bullets = Group()
@@ -62,7 +70,8 @@ def run_game():
     # основной цикл программы
     while True:
         # обработка событий
-        gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button, sb, pause)
+        gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
+                        sb, pause, hint_for_pause_button, hint_for_about_it_button, back_button, exit_button, ships, number_ship)
 
         # проверка флага состояния игры
         if stats.game_active:
@@ -70,17 +79,24 @@ def run_game():
             gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb)
             # обновление кораблей игрока после столкновения с флотом пришельцев
             number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb)
-            #print(number_ship)
+
+            print('gyjggjggk')
             #print(ships.sprites())
             # обновление позиции флота пришельцев
             gf.update_aliens(ai_settings, aliens)
             # обновление позиции корабля игрока
             ship.update()
+        else:
+            number_ship = 0
+            ship = ships.sprites()[number_ship]
+            ship.update()
+            #ship.blitme()
 
         # обновление позиции фона звёзд
         gf.update_stars(stars)
         # обновления экрана
-        gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button, game_title, sb)
+        gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button,
+                         game_title, sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button)
         #clock.tick(300)
 
 # запуск игры

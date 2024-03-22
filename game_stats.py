@@ -4,6 +4,7 @@ class GameStats:
         """Инициализация статистики"""
         # флаг состояния игры
         self.game_active = False
+        self.press_about_it_button = False
         # получение значения рекорда из файла
         with open('record.txt', 'r') as f:
             self.high_score = f.read()

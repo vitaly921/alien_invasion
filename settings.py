@@ -33,12 +33,16 @@ class Settings:
         self.initialize_dynamic_settings()
 
         # параметры кнопок игры
-        self.button_width = 300
-        self.button_height = 75
+        self.button_width = 250
+        self.button_height = 65
         self.button_color = (30, 120, 20)
         self.button_text_color = (240, 255, 250)
         self.button_text_size = 70
         self.button_text_type = None
+
+        # тексты подсказок
+        self.hint_for_play_button = 'To start the game, press "Enter" on the keyboard or mouse on the "Play" button'
+        self.hint_for_pause_button = 'To continue the game, press "Space"/ "Enter" on the keyboard or click on the Pause button'
 
     def initialize_dynamic_settings(self):
         """Инициализация настроек, изменяющихся по ходу игры"""

@@ -8,6 +8,8 @@ class Button:
         self.msg = msg
         self.screen = screen
         self.screen_rect = screen.get_rect()
+        self.pos_x = pos_x
+        self.pos_y = pos_y
 
         # задание размеров, цветов кнопки и текста
         self.width, self.height = ai_settings.button_width, ai_settings.button_height
@@ -17,8 +19,8 @@ class Button:
 
         # построение прямоугольника кнопки, задание размеров и расположения
         self.rect = pygame.Rect(0, 0, self.width, self.height)
-        self.rect.centerx = self.screen_rect.centerx * pos_x
-        self.rect.centery = self.screen_rect.centery * pos_y
+        self.rect.centerx = self.screen_rect.centerx * self.pos_x
+        self.rect.centery = self.screen_rect.centery * self.pos_y
 
         # вывод текста на кнопке
         self.prep_msg(msg)
