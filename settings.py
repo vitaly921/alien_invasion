@@ -36,6 +36,7 @@ class Settings:
         self.button_width = 250
         self.button_height = 65
         self.button_color = (30, 120, 20)
+        self.active_button_color = (210, 55, 75)
         self.button_text_color = (240, 255, 250)
         self.button_text_size = 70
         self.button_text_type = None

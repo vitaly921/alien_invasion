@@ -2,15 +2,17 @@ class GameStats:
     """Сбор статистики игры"""
     def __init__(self, ai_settings):
         """Инициализация статистики"""
-        # флаг состояния игры
+        # инициализация настроек и функции сброса статистики
+        self.ai_settings = ai_settings
+        self.reset_stats()
+
+        # флаг (не)активного состояния игры
         self.game_active = False
+        # флаг нажатия кнопки "About It"
         self.press_about_it_button = False
         # получение значения рекорда из файла
         with open('record.txt', 'r') as f:
             self.high_score = f.read()
-        # инициализация настроек и функции сброса статистики
-        self.ai_settings = ai_settings
-        self.reset_stats()
 
     def reset_stats(self):
         """Сброс некоторых статистических данных игры"""

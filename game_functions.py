@@ -28,15 +28,17 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
         ship.moving_up = True
     elif event.key == pygame.K_DOWN:
         ship.moving_down = True
+        # обработка нажатия клавиши "Enter" во время неактивной игры
     elif event.key == pygame.K_RETURN and not stats.game_active:
         # вызов функции для начала игры
         start_game(stats, aliens, bullets, ai_settings, screen, ship, sb)
-    # обработка события нажатия клавиши "p" во время активной игры
+    # обработка нажатия клавиши "p" во время активной игры
     elif event.key == pygame.K_p and stats.game_active:
-        # вызов функции для задания паузы игры
-        return_menu = False
-        return_menu = pause_game(ship, stats, pause, pause_button, hint_for_pause_button, ships)
+        # вызов функции для задания паузы игры с проверкой флага возврата в главное меню
+        return_menu = pause_game(ai_settings, ship, stats, pause, pause_button, hint_for_pause_button, ships)
+        # для случая если флаг перехода в главное меню равен True
         if return_menu:
+            # обновление корабля игрока для отображения в главном меню
             update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, True)
 
 
@@ -48,7 +50,7 @@ def reset_moving_flags_ship(ship):
     ship.moving_down = False
 
 
-def pause_game(ship, stats, pause, pause_button, hint_for_pause_button, ships):
+def pause_game(ai_settings, ship, stats, pause, pause_button, hint_for_pause_button, ships):
     """Обработка паузы в игре"""
     # флаг паузы переходит в значение True
     pause = not pause
@@ -56,6 +58,7 @@ def pause_game(ship, stats, pause, pause_button, hint_for_pause_button, ships):
     reset_moving_flags_ship(ship)
     # отображение курсора мыши
     pygame.mouse.set_visible(True)
+    # отображение подсказки во время паузы
     hint_for_pause_button.blitme()
     # основной цикл паузы
     while pause:
@@ -63,7 +66,6 @@ def pause_game(ship, stats, pause, pause_button, hint_for_pause_button, ships):
         stats.game_active = False
         # отрисовка кнопки паузы
         pause_button.draw_button()
-        #hint_for_pause_button.blitme()
         # отслеживание определённых событий во время паузы
         for event in pygame.event.get():
             # обработка события выхода из игры
@@ -72,7 +74,7 @@ def pause_game(ship, stats, pause, pause_button, hint_for_pause_button, ships):
                 quit()
             # обработка события нажатия клавиш
             if event.type == pygame.KEYDOWN:
-                # случай нажатия клавиш "p" или "space"
+                # обработка нажатия клавиш "Enter" или "Space"
                 if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                     # флаг паузы переходит в состояние false, что приводит к выходу из цикла и окончанию паузы
                     pause = False
@@ -82,15 +84,23 @@ def pause_game(ship, stats, pause, pause_button, hint_for_pause_button, ships):
                     stats.game_active = True
                 # случай нажатия клавиши "Esc"
                 elif event.key == pygame.K_ESCAPE:
+                    # выход из игры
                     pygame.quit()
                     quit()
+                # обработка нажатия клавиши "Backspace"
                 elif event.key == pygame.K_BACKSPACE:
+                    # флаг паузы переход в состояние False
                     pause = False
-                    stats.game_active = True
-                    ship.center_ship()
-                    ship.update()
+                    #stats.game_active = True
+                    # корабль возвращается в центр снизу экрана
+                    #ship.center_ship()
+                    #ship.update()
+                    # сброс статистики
                     stats.reset_stats()
-                    return True
+                    # флаг перехода в главное меню переходит в True
+                    return_menu = True
+                    # возврат флага перехода в главное меню
+                    return return_menu
 
             # обработка события нажатия любой кнопки мыши
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -109,17 +119,25 @@ def pause_game(ship, stats, pause, pause_button, hint_for_pause_button, ships):
                     # обработка события движения курсора мыши
             # обработка события движения мыши
             elif event.type == pygame.MOUSEMOTION:
-                # случай нахождения курсора мыши в пределах области кнопки
-                if pause_button.rect.collidepoint(event.pos):
-                    # изменение цвета фона кнопки
-                    pause_button.button_color = (210, 55, 75)
-                    pause_button.prep_msg(pause_button.msg)
-                else:
-                    pause_button.button_color = (30, 120, 20)
-                    pause_button.prep_msg(pause_button.msg)
+                # вызов функции для изменения цвета кнопки
+                change_color_button(ai_settings, event, pause_button)
 
         # обновление экрана для отрисовки кнопки паузы
         pygame.display.flip()
+
+
+def change_color_button(ai_settings, event, button):
+    """Изменение цвета кнопки при наведении на неё курсором мыши"""
+    # при нахождении курсора мыши в пределах кнопки
+    if button.rect.collidepoint(event.pos):
+        # изменение цвета фона кнопки
+        button.button_color = ai_settings.active_button_color
+        button.prep_msg(button.msg)
+    else:
+        # задание стандартного цвета
+        button.button_color = ai_settings.button_color
+        button.prep_msg(button.msg)
+
 
 def check_keyup_events(event, ship):
     """Реагирует на отпускание клавиш"""
@@ -160,21 +178,12 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
             check_exit_button(ai_settings, screen, mouse_x, mouse_y, about_it_button, hint_for_about_it_button, aliens, stats, exit_button)
         # обработка события движения курсора мыши
         elif event.type == pygame.MOUSEMOTION:
-            # случай нахождения курсора мыши в пределах области кнопки Play
-            if play_button.rect.collidepoint(event.pos):
-                # изменение цвета фона кнопок
-                play_button.button_color = (210, 55, 75)
-                play_button.prep_msg(play_button.msg)
-            # случай нахождения курсора мыши в пределах области кнопки About It
-            elif about_it_button.rect.collidepoint(event.pos):
-                about_it_button.button_color = (210, 55, 75)
-                about_it_button.prep_msg(about_it_button.msg)
-            # для случая отсутствия курсора мыши в пределах областей кнопок
-            else:
-                play_button.button_color = (30, 120, 20)
-                play_button.prep_msg(play_button.msg)
-                about_it_button.button_color = (30, 120, 20)
-                about_it_button.prep_msg(about_it_button.msg)
+            # изменение цвета кнопок игры (кроме паузы)
+            change_color_button(ai_settings, event, play_button)
+            change_color_button(ai_settings, event, about_it_button)
+            change_color_button(ai_settings, event, exit_button)
+            change_color_button(ai_settings, event, back_button)
+
 
 def start_game(stats, aliens, bullets, ai_settings, screen, ship, sb):
     """Функция настройки игровых элементов при старте игры"""
@@ -562,26 +571,24 @@ def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullet
         return True
 
 
-def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, return_menu = False):
+def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, return_menu=False):
     """Обновление корабля на экране при столкновении с флотом пришельцев"""
     # проверка столкновения корабля игрока и пришельца
     collision = check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb)
-    print(return_menu)
     # проверка достижения флотом пришельцев нижнего края экрана
     getting_bottom = check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb)
     # если столкновение случилось или пришельцы достигли низа экрана и индекс корабля не последний
     if (collision or getting_bottom) and number_ship != ai_settings.ship_limit-1:
-        print('stats.ship_left: ' + str(stats.ship_left))
+        #print('stats.ship_left: ' + str(stats.ship_left))
         # увеличение индекса корабля в группе
         number_ship += 1
-    # если столкновение случилось и индекс корабля последний
-    elif (collision or getting_bottom) and number_ship == ai_settings.ship_limit-1:
-        # индекс сбрасывается до нуля
+    # если столкновение или достижение края экрана случилось и индекс корабля последний
+    # или флаг возврата в главное меню равен True
+    elif ((collision or getting_bottom) and number_ship == ai_settings.ship_limit-1) or return_menu:
+        # индекс списка кораблей игрока сбрасывается до нуля
         number_ship = 0
-    if return_menu:
-        number_ship = 0
-        stats.game_active = False
-    # выбор корабля с нужным индексом
+        #stats.game_active = False
+    # выбор корабля с нужным индексом из списка доступных
     ship = ships.sprites()[number_ship]
     # возврат обновлённого индекса и корабля группы
     return number_ship, ship
