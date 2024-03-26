@@ -71,27 +71,17 @@ def run_game():
     while True:
         # обработка событий
         gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
-                        sb, pause, hint_for_pause_button, hint_for_about_it_button, back_button, exit_button, ships, number_ship)
+                        sb, pause, hint_for_pause_button, back_button, exit_button, ships, number_ship)
 
-        # проверка флага состояния игры
+        # действия только во время активного состояния игры
         if stats.game_active:
             # обновление позиций пуль и удаление пуль вышедших за верхний край экрана
             gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb)
-            # обновление кораблей игрока после столкновения с флотом пришельцев
-            number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb)
-
-            print('gyjggjggk')
-            #print(ships.sprites())
             # обновление позиции флота пришельцев
             gf.update_aliens(ai_settings, aliens)
-            # обновление позиции корабля игрока
-            ship.update()
-        else:
-            number_ship = 0
-            ship = ships.sprites()[number_ship]
-            ship.update()
-            #ship.blitme()
 
+        # обновление кораблей игрока (в т.ч. позиций) в различных состояниях игры
+        number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb)
         # обновление позиции фона звёзд
         gf.update_stars(stars)
         # обновления экрана
