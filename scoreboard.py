@@ -39,8 +39,13 @@ class Scoreboard:
             ship = Ship(self.ai_settings, self.screen, self.number_ship)
             # установка нового размера для текущего экземпляра
             ship.image = pygame.transform.scale(ship.image, (50, 50))
-            # установка прозрачности для текущего экземпляра (от 0 до 255)
-            ship.image.set_alpha(200)
+            # действия для крайнего корабля в списке
+            if ship_number == self.stats.ship_left-1:
+                # установка меньшей прозрачности экземпляра
+                ship.image.set_alpha(200)
+            else:
+                # установка большей прозрачности экземпляра
+                ship.image.set_alpha(125)
             # задание расположения для каждого корабля группы
             ship.rect.x = 10 + ship_number * 60
             ship.rect.y = 0
