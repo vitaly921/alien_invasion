@@ -48,9 +48,9 @@ class Settings:
     def initialize_dynamic_settings(self):
         """Инициализация настроек, изменяющихся по ходу игры"""
         # задание начальной скорости корабля игрока
-        self.ship_speed_factor = 5
+        self.ship_speed_factor = 8
         # задание начальной скорости пуль
-        self.bullet_speed_factor = 7
+        self.bullet_speed_factor = 10
         # задание начальной скорости кораблей пришельцев
         self.alien_speed_factor = 8.5
         # стартовые очки за пришельца

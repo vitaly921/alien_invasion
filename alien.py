@@ -22,6 +22,7 @@ class Alien(Sprite):
         self.rect.y = self.rect.height
         # сохранение координаты Х в вещественной форме
         self.x = float(self.rect.x)
+        self.y = self.rect.y
 
     def check_edges(self):
         """Возвращает флаг True при достижении флотом правого/левого края экрана"""
@@ -36,6 +37,7 @@ class Alien(Sprite):
         # координата по Х меняется в зависимости от флага направления и скорости
         self.x += (self.ai_settings.alien_speed_factor * self.ai_settings.fleet_direction)
         self.rect.x = self.x
+        self.y = self.rect.y
 
     def blitme(self):
         """Отрисовка пришельца"""

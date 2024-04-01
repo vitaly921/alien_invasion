@@ -6,6 +6,7 @@ from bullet import Bullet
 from alien import Alien
 from star import Star
 from ship import Ship
+from explosion import Explosion
 
 
 def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
@@ -285,7 +286,7 @@ def create_gradient(width, height):
 
 
 def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button, game_title,
-                  sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button):
+                  sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions):
     """Обновляет экран и показывает всё содержимоё на нём"""
     # вариант заполнения экрана сплошным цветом фона
     # screen.fill(ai_settings.bg_color)
@@ -307,6 +308,7 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     ship.blitme()
     aliens.draw(screen)
 
+    explosions.draw(screen)
     # отображение рекорда
     sb.show_high_score()
 
@@ -342,7 +344,7 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     pygame.display.flip()
 
 
-def update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb):
+def update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions):
     """Обновляет количество и позиции пуль, обрабатывает коллизии пуль с пришельцами"""
     # обновление позиции пуль
     bullets.update()
@@ -352,22 +354,28 @@ def update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb):
         if bullet.rect.bottom <= 0:
             bullets.remove(bullet)
     # функция обработки столкновения пуль с флотом пришельцев
-    check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb)
+    check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions)
 
 
-def check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb):
+def check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions):
     """Обработка столкновений пуль с пришельцами"""
     # удаление пуль и/или пришельцев во время столкновения с получением флага столкновения
     collisions = pygame.sprite.groupcollide(bullets, aliens, False, True)
-
+    #print(collisions)
     # при попадании пули по пришельцу увеличивается счёт игры и обновляется изображение с текстом счета
     if collisions:
         # для кораблей пришельцев, по которым попала пуля
         for aliens in collisions.values():
-            print('X: ' + str(aliens[0].x))
-            print('Y: ' + str(aliens[0].y))
+            for alien in aliens:
+                explosion = Explosion(ai_settings, screen, alien.x, alien.y)
+                explosions.add(explosion)
+                #print('X: ' + str(alien.x))
+                #print(explosion.pos_x)
+                #print('Y: ' + str(alien.y))
             # увеличение значения счёта, который учитывает все попадания одного снаряда
             stats.score += ai_settings.alien_points * len(aliens)
+            #print(len(aliens))
+            #print(explosions)
             # обновление словаря со значением счёта игры на текущем уровне
             stats.score_dict[stats.level] = stats.score
         # формирование изображения с текстом обновленного счёта

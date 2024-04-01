@@ -50,6 +50,7 @@ def run_game():
     aliens = Group()
     stars = Group()
     ships = Group()
+    explosions = Group()
 
     # наполнение группы кораблей различными экземплярами
     ships = gf.create_ships(ai_settings, screen, ships)
@@ -76,9 +77,10 @@ def run_game():
         # действия только во время активного состояния игры
         if stats.game_active:
             # обновление позиций пуль и удаление пуль вышедших за верхний край экрана
-            gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb)
+            gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions)
             # обновление позиции флота пришельцев
             gf.update_aliens(ai_settings, aliens)
+            explosions.update()
 
         # обновление кораблей игрока (в т.ч. позиций) в различных состояниях игры
         number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb)
@@ -86,7 +88,7 @@ def run_game():
         gf.update_stars(stars)
         # обновления экрана
         gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button,
-                         game_title, sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button)
+                         game_title, sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions)
         #clock.tick(300)
 
 # запуск игры
