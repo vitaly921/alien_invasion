@@ -316,9 +316,10 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     if not stats.game_active:
         # задание расположения корабля по центру
         ship.center_ship()
-        # очистка групп пришельцев и пуль
+        # очистка групп пришельцев, пуль, взрывов
         aliens.empty()
         bullets.empty()
+        explosions.empty()
         # действия во время неактивной игры при переходе в меню описания
         if stats.press_about_it_button:
             # текст описания игры
@@ -360,51 +361,83 @@ def update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explos
 def check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions):
     """Обработка столкновений пуль с пришельцами"""
     # удаление пуль и/или пришельцев во время столкновения с получением флага столкновения
-    collisions = pygame.sprite.groupcollide(bullets, aliens, False, True)
-    #print(collisions)
-    # при попадании пули по пришельцу увеличивается счёт игры и обновляется изображение с текстом счета
+    collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    # при попадании пули по пришельцу увеличивается счёт игры, обновляется изображение с текстом счета,
+    # появляется взрыв на месте пришельца
     if collisions:
         # для кораблей пришельцев, по которым попала пуля
         for aliens in collisions.values():
+            # для каждого корабля из списка кораблей, по которым попала пуля
             for alien in aliens:
-                explosion = Explosion(ai_settings, screen, alien.x, alien.y)
-                explosions.add(explosion)
-                #print('X: ' + str(alien.x))
-                #print(explosion.pos_x)
-                #print('Y: ' + str(alien.y))
-            # увеличение значения счёта, который учитывает все попадания одного снаряда
-            stats.score += ai_settings.alien_points * len(aliens)
-            #print(len(aliens))
-            #print(explosions)
-            # обновление словаря со значением счёта игры на текущем уровне
-            stats.score_dict[stats.level] = stats.score
-        # формирование изображения с текстом обновленного счёта
-        sb.prep_score()
-        # проверка достижения рекордного счёта
-        check_high_score(stats, sb)
+                # вызов функции для создания эффекта взрыва конкретного корабля
+                create_explosion(explosions, ai_settings, screen, alien)
+            # вызов функции для обновления счета игры и проверки рекорда
+            update_score(ai_settings, stats, aliens, sb)
 
-    # функция перехода на новый уровень при отсутствии пришельцев
-    start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship)
+    # для случая отсутствия флота пришельцев после его уничтожения
+    if len(aliens) == 0:
+        # функция перехода на новый уровень игры
+        start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship)
 
 
 def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship):
-    """Функция проверки и перехода игры на новый уровень"""
-    # для случая отсутствия флота пришельцев после его уничтожения
-    if len(aliens) == 0:
-        # сброс флагов движения корабля в состояние False
-        reset_moving_flags_ship(ship)
-        # задание временной паузы
-        sleep(2.5)
-        # очистка списка оставшихся пуль
-        bullets.empty()
-        # вызов функции увеличения скорости игровых объектов
-        ai_settings.increase_speed()
-        # увеличение уровня игры
-        stats.level += 1
-        # обновление изображения с уровнем игры
-        sb.prep_level()
-        # создание нового флота пришельцев
-        create_fleet(ai_settings, screen, ship, aliens)
+    """Функция перехода игры на новый уровень"""
+    # сброс флагов движения корабля в состояние False
+    reset_moving_flags_ship(ship)
+    # задание временной паузы
+    sleep(2.5)
+    # очистка списка оставшихся пуль
+    bullets.empty()
+    # вызов функции увеличения скорости игровых объектов
+    ai_settings.increase_speed()
+    # увеличение уровня игры
+    stats.level += 1
+    # обновление изображения с уровнем игры
+    sb.prep_level()
+    # создание нового флота пришельцев
+    create_fleet(ai_settings, screen, ship, aliens)
+
+
+def create_explosion(explosions, ai_settings, screen, game_ship):
+    """Функция создания эффекта взрыва для корабля игрока/пришельца"""
+    # создание экземпляра взрыва по координатам корабля
+    explosion = Explosion(ai_settings, screen, game_ship.x, game_ship.y)
+    # добавление экземпляра в группу
+    explosions.add(explosion)
+
+
+def update_score(ai_settings, stats, aliens, sb):
+    """Функция для обновления счета игры и проверки рекорда"""
+    # увеличение значения счёта, который учитывает все попадания одного снаряда
+    stats.score += ai_settings.alien_points * len(aliens)
+    # обновление словаря со значением счёта игры на текущем уровне
+    stats.score_dict[stats.level] = stats.score
+    # формирование изображения с текстом обновленного счёта
+    sb.prep_score()
+    # проверка достижения рекордного счёта
+    check_high_score(stats, sb)
+
+
+def update_explosions(ai_settings, explosions):
+    """Функция для обновления координат, продолжительности и прозрачности эффекта взрыва"""
+    # вычисление текущего времени
+    current_time = pygame.time.get_ticks()
+    # для каждого эффекта взрыва в группе взрывов
+    for explosion in explosions.sprites():
+        # если разница между текущем временем и временем создания эффекта взрыва больше или равна запланированной
+        # продолжительности эффекта взрыва
+        if current_time - explosion.creation_time >= ai_settings.explosion_duration:
+            # удаление эффекта взрыва из группы и освобождение памяти
+            explosion.kill()
+            #explosions.remove(explosion)
+        else:
+            # подсчет переменной для задания эффекта прозрачности с течением времени
+            alpha = ((pygame.time.get_ticks() - explosion.creation_time) / ai_settings.explosion_duration *
+                     ai_settings.explosion_alpha)
+            # задание прозрачности до окончания времени отображения эффекта
+            explosion.image.set_alpha(255 - alpha)
+    # обновление координат эффекта, зависящих от координат уничтожаемого объекта
+    explosions.update()
 
 
 def create_ships(ai_settings, screen, ships):

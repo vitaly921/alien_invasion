@@ -80,7 +80,8 @@ def run_game():
             gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions)
             # обновление позиции флота пришельцев
             gf.update_aliens(ai_settings, aliens)
-            explosions.update()
+            # обновление координат, продолжительности и прозрачности эффекта взрыва
+            gf.update_explosions(ai_settings, explosions)
 
         # обновление кораблей игрока (в т.ч. позиций) в различных состояниях игры
         number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb)

@@ -21,6 +21,12 @@ class Settings:
         self.bullet_color = (222, 164, 109)
         self.bullets_allowed = 4
 
+        # параметры для эффекта взрыва
+        self.explosion_width = 50
+        self.explosion_height = 50
+        self.explosion_duration = 350
+        self.explosion_alpha = 200
+
         # настройки для флота пришельцев (кроме скорости)
         #self.alien_speed_factor = 1.5
         self.fleet_drop_speed = 20
