@@ -28,10 +28,12 @@ class Explosion(Sprite):
         self.rect.y = self.pos_y
         # конвертация координаты Х в число с плавающей точкой
         self.x = float(self.rect.x)
+        self.y = float(self.rect.y)
 
-    def update(self, ship=False):
+    def update(self):
         """Функция обновления координат взрыва"""
         # подсчет координаты Х взрыва, соответствущей координате уничтоженного корабля в формате float
         self.x += (self.ai_settings.alien_speed_factor * self.ai_settings.fleet_direction)
         # передача посчитанной координаты Х прямоугольнику изображения взрыва в формате int
         self.rect.x = self.x
+

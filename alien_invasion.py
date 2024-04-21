@@ -67,6 +67,8 @@ def run_game():
     # состояние паузы
     pause = False
 
+
+
     clock = pygame.time.Clock()
     # основной цикл программы
     while True:
@@ -84,7 +86,7 @@ def run_game():
             gf.update_explosions(ai_settings, explosions)
 
         # обновление кораблей игрока (в т.ч. позиций) в различных состояниях игры
-        number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb)
+        number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, explosions)
         # обновление позиции фона звёзд
         gf.update_stars(stars)
         # обновления экрана

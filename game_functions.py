@@ -609,8 +609,9 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, collision=Tr
 
         # очистка группы пуль
         bullets.empty()
+        print(ship.x)
         # задание паузы
-        sleep(1.5)
+        #sleep(1.5)
 
     # для случая если кораблей для игры (попыток) не осталось
     else:
@@ -625,7 +626,6 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, collision=Tr
         pygame.mouse.set_visible(True)
         # задание паузы
         sleep(1.5)
-
     # задание расположения объекта корабля снизу в центре экрана
     ship.center_ship()
 
@@ -643,20 +643,28 @@ def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb):
             return True
 
 
-def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb):
+def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions):
     """Проверка и реакция на столкновение корабля с флотом пришельцев"""
-    if pygame.sprite.spritecollideany(ship, aliens):
+    collide_alien = pygame.sprite.spritecollideany(ship, aliens)
+    if collide_alien:
+        print(collide_alien)
         # сброс флагов движения корабля в значение False
         reset_moving_flags_ship(ship)
+        collide_alien.kill()
+        # взрыв на месте столкновения
+        create_explosion(explosions, ai_settings, screen, collide_alien)
         # вызов функции обработки уничтожения корабля
         ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb)
         return True
 
 
-def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb):
+def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, explosions):
     """Обновление корабля на экране при столкновении с флотом пришельцев / достижения флотом нижнего края"""
     # проверка столкновения корабля игрока и пришельца
-    collision = check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb)
+    collision = check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions)
+    if collision:
+        create_explosion(explosions, ai_settings, screen, ship)
+
     # проверка достижения флотом пришельцев нижнего края экрана
     getting_bottom = check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb)
     # если столкновение случилось или пришельцы достигли низа экрана и индекс корабля не последний

@@ -40,6 +40,9 @@ class Ship(Sprite):
         self.centerx = float(self.rect.centerx)
         self.centery = float(self.rect.centery)
 
+        self.x = float(self.rect.x)
+        self.y = self.rect.y
+
         # флаги перемещения корабля по оси X и Y
         self.moving_right = False
         self.moving_left = False
