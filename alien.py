@@ -41,5 +41,5 @@ class Alien(Sprite):
 
     def blitme(self):
         """Отрисовка пришельца"""
-        #self.screen.blit(self.image, self.rect)
-        pass
+        self.screen.blit(self.image, self.rect)
+

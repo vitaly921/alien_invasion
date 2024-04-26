@@ -37,3 +37,7 @@ class Explosion(Sprite):
         # передача посчитанной координаты Х прямоугольнику изображения взрыва в формате int
         self.rect.x = self.x
 
+    def blitme(self):
+        """Отрисовка пришельца"""
+        self.screen.blit(self.image, self.rect)
+

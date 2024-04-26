@@ -398,10 +398,13 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship):
     create_fleet(ai_settings, screen, ship, aliens)
 
 
-def create_explosion(explosions, ai_settings, screen, game_ship):
+def create_explosion(explosions, ai_settings, screen, game_ship, alien=True):
     """Функция создания эффекта взрыва для корабля игрока/пришельца"""
     # создание экземпляра взрыва по координатам корабля
-    explosion = Explosion(ai_settings, screen, game_ship.x, game_ship.y)
+    if alien:
+        explosion = Explosion(ai_settings, screen, game_ship.x, game_ship.y)
+    else:
+        explosion = Explosion(ai_settings, screen, game_ship.centerx-25, game_ship.centery-25)
     # добавление экземпляра в группу
     explosions.add(explosion)
 
@@ -609,7 +612,7 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, collision=Tr
 
         # очистка группы пуль
         bullets.empty()
-        print(ship.x)
+        #print(ship.x)
         # задание паузы
         #sleep(1.5)
 
@@ -625,7 +628,7 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, collision=Tr
         # отображение курсора мыши
         pygame.mouse.set_visible(True)
         # задание паузы
-        sleep(1.5)
+        #sleep(1.5)
     # задание расположения объекта корабля снизу в центре экрана
     ship.center_ship()
 
@@ -645,14 +648,27 @@ def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb):
 
 def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions):
     """Проверка и реакция на столкновение корабля с флотом пришельцев"""
+    #print(ship.x)
     collide_alien = pygame.sprite.spritecollideany(ship, aliens)
     if collide_alien:
-        print(collide_alien)
+
         # сброс флагов движения корабля в значение False
         reset_moving_flags_ship(ship)
+
         collide_alien.kill()
+
         # взрыв на месте столкновения
         create_explosion(explosions, ai_settings, screen, collide_alien)
+        create_explosion(explosions, ai_settings, screen, ship, alien=False)
+        last_two_explosions = explosions.sprites()[-2:]
+
+        for explosion in last_two_explosions:
+            explosion.blitme()
+        pygame.display.flip()
+
+
+        sleep(1.0)
+
         # вызов функции обработки уничтожения корабля
         ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb)
         return True
@@ -662,8 +678,6 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
     """Обновление корабля на экране при столкновении с флотом пришельцев / достижения флотом нижнего края"""
     # проверка столкновения корабля игрока и пришельца
     collision = check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions)
-    if collision:
-        create_explosion(explosions, ai_settings, screen, ship)
 
     # проверка достижения флотом пришельцев нижнего края экрана
     getting_bottom = check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb)
@@ -671,6 +685,7 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
     if (collision or getting_bottom) and number_ship != ai_settings.ship_limit-1:
         # увеличение индекса корабля в группе
         number_ship += 1
+
     # если столкновение или достижение края экрана случилось и индекс корабля последний
     # или игра находится в неактивном состоянии
     elif ((collision or getting_bottom) and number_ship == ai_settings.ship_limit-1) or not stats.game_active:
@@ -679,6 +694,7 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
     # выбор корабля с нужным индексом из списка доступных
     ship = ships.sprites()[number_ship]
     ship.update()
+    #print(ship.centerx)
     # возврат обновлённого индекса и корабля группы
     return number_ship, ship
 
