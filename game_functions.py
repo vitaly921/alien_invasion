@@ -3,6 +3,7 @@ import pygame
 from time import sleep
 from random import randint
 from bullet import Bullet
+from air_bomb import AirBomb
 from alien import Alien
 from star import Star
 from ship import Ship
@@ -10,7 +11,7 @@ from explosion import Explosion
 
 
 def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
-                 sb, pause, hint_for_pause_button, back_button, exit_button):
+                 sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs):
     """Обработка событий в игре"""
     for event in pygame.event.get():
         # обработка события закрытия окна игры
@@ -22,7 +23,7 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
         # обработка события нажатия клавиш
         elif event.type == pygame.KEYDOWN:
             check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb, pause, pause_button,
-                                 hint_for_pause_button)
+                                 hint_for_pause_button, air_bombs)
         # обработка события отпускания клавиш
         elif event.type == pygame.KEYUP:
             check_keyup_events(event, ship)
@@ -36,7 +37,7 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
 
 
 def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb, pause, pause_button,
-                         hint_for_pause_button):
+                         hint_for_pause_button, air_bombs):
     """Реагирует на нажатие клавиш"""
     if event.key == pygame.K_ESCAPE:
         # запись в файл обновленного значения рекорда
@@ -51,6 +52,8 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
     elif event.key == pygame.K_SPACE:
         # вызов функции открытия огня по противнику
         fire_bullet(ai_settings, screen, ship, bullets, stats)
+    elif event.key == pygame.K_RSHIFT:
+        drop_air_bomb(ai_settings, screen, ship, air_bombs, stats)
     elif event.key == pygame.K_UP:
         ship.moving_up = True
     elif event.key == pygame.K_DOWN:
@@ -286,7 +289,7 @@ def create_gradient(width, height):
 
 
 def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button, game_title,
-                  sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions):
+                  sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs):
     """Обновляет экран и показывает всё содержимоё на нём"""
     # вариант заполнения экрана сплошным цветом фона
     # screen.fill(ai_settings.bg_color)
@@ -304,6 +307,9 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     for bullet in bullets.sprites():
         bullet.draw_bullet()
 
+    for air_bomb in air_bombs.sprites():
+        air_bomb.draw_air_bomb()
+
     # отрисовка корабля игрока и группы пришельцев
     ship.blitme()
     aliens.draw(screen)
@@ -319,6 +325,7 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
         # очистка групп пришельцев, пуль, взрывов
         aliens.empty()
         bullets.empty()
+        air_bombs.empty()
         explosions.empty()
         # действия во время неактивной игры при переходе в меню описания
         if stats.press_about_it_button:
@@ -345,7 +352,7 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     pygame.display.flip()
 
 
-def update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions):
+def update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs):
     """Обновляет количество и позиции пуль, обрабатывает коллизии пуль с пришельцами"""
     # обновление позиции пуль
     bullets.update()
@@ -355,10 +362,19 @@ def update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explos
         if bullet.rect.bottom <= 0:
             bullets.remove(bullet)
     # функция обработки столкновения пуль с флотом пришельцев
-    check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions)
+    check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs)
 
 
-def check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions):
+def update_air_bombs(ai_settings, screen, ship, aliens, air_bombs, stats, sb, explosions, bullets):
+    """"""
+    air_bombs.update()
+    for air_bomb in air_bombs.copy():
+        if air_bomb.rect.top > air_bomb.screen_rect.bottom:
+            air_bombs.remove(air_bomb)
+    check_air_bomb_alien_collision(ai_settings, screen, ship, aliens, air_bombs, stats, sb, explosions, bullets)
+
+
+def check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs):
     """Обработка столкновений пуль с пришельцами"""
     # удаление пуль и/или пришельцев во время столкновения с получением флага столкновения
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
@@ -377,10 +393,29 @@ def check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, sta
     # для случая отсутствия флота пришельцев после его уничтожения
     if len(aliens) == 0:
         # функция перехода на новый уровень игры
-        start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship)
+        start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs)
 
 
-def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship):
+def check_air_bomb_alien_collision(ai_settings, screen, ship, aliens, air_bombs, stats, sb, explosions, bullets):
+    """"""
+    collisions = pygame.sprite.groupcollide(air_bombs, aliens, False, True)
+    if collisions:
+        # для кораблей пришельцев, по которым попала пуля
+        for aliens in collisions.values():
+            # для каждого корабля из списка кораблей, по которым попала пуля
+            for alien in aliens:
+                # вызов функции для создания эффекта взрыва конкретного корабля
+                create_explosion(explosions, ai_settings, screen, alien)
+            # вызов функции для обновления счета игры и проверки рекорда
+            update_score(ai_settings, stats, aliens, sb)
+
+        # для случая отсутствия флота пришельцев после его уничтожения
+    if len(aliens) == 0:
+        # функция перехода на новый уровень игры
+        start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs)
+
+
+def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs):
     """Функция перехода игры на новый уровень"""
     # сброс флагов движения корабля в состояние False
     reset_moving_flags_ship(ship)
@@ -388,6 +423,7 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship):
     sleep(2.5)
     # очистка списка оставшихся пуль
     bullets.empty()
+    air_bombs.empty()
     # вызов функции увеличения скорости игровых объектов
     ai_settings.increase_speed()
     # увеличение уровня игры
@@ -462,6 +498,13 @@ def fire_bullet(ai_settings, screen, ship, bullets, stats):
         # создание новой пули и включение её в группу bullets
         new_bullet = Bullet(ai_settings, screen, ship)
         bullets.add(new_bullet)
+
+
+def drop_air_bomb(ai_settings, screen, ship, air_bombs, stats):
+    """"""
+    if len(air_bombs) < 1 and stats.game_active:
+        new_air_bomb = AirBomb(ai_settings, screen, ship)
+        air_bombs.add(new_air_bomb)
 
 
 def check_high_score(stats, sb):

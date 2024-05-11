@@ -51,6 +51,7 @@ def run_game():
     stars = Group()
     ships = Group()
     explosions = Group()
+    air_bombs = Group()
 
     # наполнение группы кораблей различными экземплярами
     ships = gf.create_ships(ai_settings, screen, ships)
@@ -67,23 +68,23 @@ def run_game():
     # состояние паузы
     pause = False
 
-
-
     clock = pygame.time.Clock()
     # основной цикл программы
     while True:
         # обработка событий
         gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
-                        sb, pause, hint_for_pause_button, back_button, exit_button)
+                        sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs)
 
         # действия только во время активного состояния игры
         if stats.game_active:
             # обновление позиций пуль и удаление пуль вышедших за верхний край экрана
-            gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions)
+            gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs)
             # обновление позиции флота пришельцев
             gf.update_aliens(ai_settings, aliens)
             # обновление координат, продолжительности и прозрачности эффекта взрыва
             gf.update_explosions(ai_settings, explosions)
+            # обновление позиций авиабомб и удаление бомб вышедших за нижний край экрана
+            gf.update_air_bombs(ai_settings, screen, ship, aliens, air_bombs, stats, sb, explosions, bullets)
 
         # обновление кораблей игрока (в т.ч. позиций) в различных состояниях игры
         number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, explosions)
@@ -91,7 +92,7 @@ def run_game():
         gf.update_stars(stars)
         # обновления экрана
         gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button,
-                         game_title, sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions)
+                         game_title, sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs)
         #clock.tick(300)
 
 # запуск игры

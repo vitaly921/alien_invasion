@@ -14,7 +14,7 @@ class Explosion(Sprite):
         self.screen_rect = screen.get_rect()
 
         # загрузка изображения эффекта взрыва
-        self.image = pygame.image.load('images/explotion.png')
+        self.image = pygame.image.load('images/explosion.png')
         # задание размеров, конвертация, получение прямоугольника изображения
         self.image = pygame.transform.scale(self.image,(ai_settings.explosion_width, ai_settings.explosion_height))
         self.image = self.image.convert_alpha()
