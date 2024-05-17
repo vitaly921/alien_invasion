@@ -7,7 +7,7 @@ class Settings:
         self.screen_width = 1400
         self.screen_height = 750
         self.bg_color = (163, 102, 230)
-        self.icon = 'images/ship_icon.png'
+        self.icon = 'images/icon.png'
         self.game_name = 'Alien Invasion'
 
         # параметры корабля (кроме скорости)

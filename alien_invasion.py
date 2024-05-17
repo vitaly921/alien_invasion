@@ -77,14 +77,12 @@ def run_game():
 
         # действия только во время активного состояния игры
         if stats.game_active:
-            # обновление позиций пуль и удаление пуль вышедших за верхний край экрана
-            gf.update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs)
             # обновление позиции флота пришельцев
             gf.update_aliens(ai_settings, aliens)
             # обновление координат, продолжительности и прозрачности эффекта взрыва
             gf.update_explosions(ai_settings, explosions)
-            # обновление позиций авиабомб и удаление бомб вышедших за нижний край экрана
-            gf.update_air_bombs(ai_settings, screen, ship, aliens, air_bombs, stats, sb, explosions, bullets)
+            # обновление позиций пуль/авиабомб, проверка их столкновения с пришельцами
+            gf.update_ship_projectiles(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs)
 
         # обновление кораблей игрока (в т.ч. позиций) в различных состояниях игры
         number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, explosions)

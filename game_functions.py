@@ -306,7 +306,7 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     # поочередная отрисовка пуль
     for bullet in bullets.sprites():
         bullet.draw_bullet()
-
+    # поочередная отрисовка авиабомб
     for air_bomb in air_bombs.sprites():
         air_bomb.draw_air_bomb()
 
@@ -314,6 +314,7 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     ship.blitme()
     aliens.draw(screen)
 
+    # отрисовка взрывов
     explosions.draw(screen)
     # отображение рекорда
     sb.show_high_score()
@@ -352,43 +353,43 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     pygame.display.flip()
 
 
-def update_bullets(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs):
-    """Обновляет количество и позиции пуль, обрабатывает коллизии пуль с пришельцами"""
-    # обновление позиции пуль
+def update_ship_projectiles(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs):
+    """Обновление позиций пуль/авиабомб, проверка их столкновения с пришельцами"""
+    # обновление позиции пуль/авиабомб
     bullets.update()
-    # отслеживание позиции для каждой пули из группы
-    for bullet in bullets.copy():
-        # удаление пули при достижении её нижнего края координаты верха экрана
-        if bullet.rect.bottom <= 0:
-            bullets.remove(bullet)
-    # функция обработки столкновения пуль с флотом пришельцев
-    check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs)
-
-
-def update_air_bombs(ai_settings, screen, ship, aliens, air_bombs, stats, sb, explosions, bullets):
-    """"""
     air_bombs.update()
+    # для каждой пули из списка
+    for bullet in bullets.copy():
+        # для случая достижения нижней части пули верхней части экрана
+        if bullet.rect.bottom <= 0:
+            # удаление пули
+            bullets.remove(bullet)
+    # для каждой авиабомбы из списка
     for air_bomb in air_bombs.copy():
+        # для случая достижения верхней части авиабомбы нижней части экрана
         if air_bomb.rect.top > air_bomb.screen_rect.bottom:
+            # удаление авиабомбы
             air_bombs.remove(air_bomb)
-    check_air_bomb_alien_collision(ai_settings, screen, ship, aliens, air_bombs, stats, sb, explosions, bullets)
+
+    # функция проверки и обработки столкновения авиабомб/пуль с флотом пришельцев
+    check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs)
 
 
-def check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs):
-    """Обработка столкновений пуль с пришельцами"""
-    # удаление пуль и/или пришельцев во время столкновения с получением флага столкновения
-    collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
-    # при попадании пули по пришельцу увеличивается счёт игры, обновляется изображение с текстом счета,
-    # появляется взрыв на месте пришельца
-    if collisions:
-        # для кораблей пришельцев, по которым попала пуля
-        for aliens in collisions.values():
-            # для каждого корабля из списка кораблей, по которым попала пуля
-            for alien in aliens:
-                # вызов функции для создания эффекта взрыва конкретного корабля
-                create_explosion(explosions, ai_settings, screen, alien)
-            # вызов функции для обновления счета игры и проверки рекорда
-            update_score(ai_settings, stats, aliens, sb)
+def check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs):
+    """Обработка столкновений пуль/авиабомб с пришельцами"""
+    # обработка столкновений пуль с пришельцами: при столкновении удаляется и пуля и пришелец
+    bullets_collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    # обработка столкновений авиабомб с пришельцами: при столкновении удаляются только пришельцы
+    air_bombs_collisions = pygame.sprite.groupcollide(air_bombs, aliens, False, True)
+
+    # для случая столкновения пуль с пришельцами
+    if bullets_collisions:
+        # дальнейшая обработка
+        handle_collision(bullets_collisions, ai_settings, screen, explosions, stats, sb)
+    # для случая столкновения авиабомб с пришельцами
+    elif air_bombs_collisions:
+        # дальнейшая обработка
+        handle_collision(air_bombs_collisions, ai_settings, screen, explosions, stats, sb)
 
     # для случая отсутствия флота пришельцев после его уничтожения
     if len(aliens) == 0:
@@ -396,23 +397,16 @@ def check_bullet_alien_collision(ai_settings, screen, ship, aliens, bullets, sta
         start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs)
 
 
-def check_air_bomb_alien_collision(ai_settings, screen, ship, aliens, air_bombs, stats, sb, explosions, bullets):
-    """"""
-    collisions = pygame.sprite.groupcollide(air_bombs, aliens, False, True)
-    if collisions:
-        # для кораблей пришельцев, по которым попала пуля
-        for aliens in collisions.values():
-            # для каждого корабля из списка кораблей, по которым попала пуля
-            for alien in aliens:
-                # вызов функции для создания эффекта взрыва конкретного корабля
-                create_explosion(explosions, ai_settings, screen, alien)
-            # вызов функции для обновления счета игры и проверки рекорда
-            update_score(ai_settings, stats, aliens, sb)
-
-        # для случая отсутствия флота пришельцев после его уничтожения
-    if len(aliens) == 0:
-        # функция перехода на новый уровень игры
-        start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs)
+def handle_collision(collisions, ai_settings, screen, explosions, stats, sb):
+    """Функция для создания эффекта взрыва в месте столкновения и обновления счета"""
+    # для кораблей из словаря, по которым попал один снаряд
+    for aliens in collisions.values():
+        # для каждого корабля из списка кораблей, по которым попала пуля
+        for alien in aliens:
+            # вызов функции для создания эффекта взрыва конкретного корабля
+            create_explosion(explosions, ai_settings, screen, alien)
+        # вызов функции для обновления счета игры и проверки рекорда
+        update_score(ai_settings, stats, aliens, sb)
 
 
 def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs):
@@ -421,7 +415,7 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_b
     reset_moving_flags_ship(ship)
     # задание временной паузы
     sleep(2.5)
-    # очистка списка оставшихся пуль
+    # очистка списка оставшихся пуль и авиабомб
     bullets.empty()
     air_bombs.empty()
     # вызов функции увеличения скорости игровых объектов
