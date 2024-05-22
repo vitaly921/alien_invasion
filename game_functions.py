@@ -45,18 +45,18 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
             f.write(str(stats.high_score))
         # закрытие окна программы
         sys.exit()
-    elif event.key == pygame.K_RIGHT:
+    elif event.key == pygame.K_RIGHT and stats.game_active:
         ship.moving_right = True
-    elif event.key == pygame.K_LEFT:
+    elif event.key == pygame.K_LEFT and stats.game_active:
         ship.moving_left = True
     elif event.key == pygame.K_SPACE:
         # вызов функции открытия огня по противнику
         fire_bullet(ai_settings, screen, ship, bullets, stats)
     elif event.key == pygame.K_RSHIFT:
         drop_air_bomb(ai_settings, screen, ship, air_bombs, stats)
-    elif event.key == pygame.K_UP:
+    elif event.key == pygame.K_UP and stats.game_active:
         ship.moving_up = True
-    elif event.key == pygame.K_DOWN:
+    elif event.key == pygame.K_DOWN and stats.game_active:
         ship.moving_down = True
         # обработка нажатия клавиши "Enter" во время неактивной игры
     elif event.key == pygame.K_RETURN and not stats.game_active:
@@ -393,8 +393,20 @@ def check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bu
 
     # для случая отсутствия флота пришельцев после его уничтожения
     if len(aliens) == 0:
+        # вызов функции для отображения взрыва последнего корабля пришельца
+        show_last_alien_explosion(explosions)
+        #ship.center_ship()
         # функция перехода на новый уровень игры
         start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs)
+
+def show_last_alien_explosion(explosions):
+    """Функция для отображения эффекта взрыва последнего пришельца"""
+    # сохранение последнего эффекта взрыва
+    last_explosion = explosions.sprites()[-1:]
+    # отображение последнего эффекта взрыва
+    last_explosion[0].blitme()
+    # обновление экрана
+    pygame.display.flip()
 
 
 def handle_collision(collisions, ai_settings, screen, explosions, stats, sb):
@@ -413,9 +425,14 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_b
     """Функция перехода игры на новый уровень"""
     # сброс флагов движения корабля в состояние False
     reset_moving_flags_ship(ship)
+    print('hello')
+
+    if ship.rect.top < 300:
+        ship.center_ship()
     # задание временной паузы
     sleep(2.5)
     # очистка списка оставшихся пуль и авиабомб
+    aliens.empty()
     bullets.empty()
     air_bombs.empty()
     # вызов функции увеличения скорости игровых объектов
@@ -424,8 +441,11 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_b
     stats.level += 1
     # обновление изображения с уровнем игры
     sb.prep_level()
+
     # создание нового флота пришельцев
     create_fleet(ai_settings, screen, ship, aliens)
+    last_alien = aliens.sprites()[-1]
+    print(last_alien.rect.bottom)
 
 
 def create_explosion(explosions, ai_settings, screen, game_ship, alien=True):
@@ -689,6 +709,10 @@ def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb):
 def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions):
     """Проверка и реакция на столкновение корабля с флотом пришельцев"""
     # выявление столкнувшегося с кораблём игрока пришельца из группы
+    #print(len(aliens))
+
+    ship.update()
+    print(ship.rect.top)
     collide_alien = pygame.sprite.spritecollideany(ship, aliens)
     # если существует пришелец из группы, столкнувшийся с кораблём игрока
     if collide_alien:
@@ -721,6 +745,7 @@ def show_ship_alien_explosion(explosions, ai_settings, screen, collide_alien, sh
 
 def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, explosions):
     """Обновление корабля на экране при столкновении с флотом пришельцев / достижения флотом нижнего края"""
+
     # проверка столкновения корабля игрока и пришельца
     collision = check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions)
 
@@ -738,7 +763,7 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
         number_ship = 0
     # выбор корабля с нужным индексом из списка доступных
     ship = ships.sprites()[number_ship]
-    ship.update()
+    #ship.update()
     #print(ship.centerx)
     # возврат обновлённого индекса и корабля группы
     return number_ship, ship
