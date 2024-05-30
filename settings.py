@@ -21,6 +21,11 @@ class Settings:
         self.bullet_color = (222, 164, 109)
         self.bullets_allowed = 4
 
+        # параметры авиабомбы
+        self.air_bomb_width = 40
+        self.air_bomb_height = 30
+        self.air_bombs_allowed = 1
+
         # параметры для эффекта взрыва
         self.explosion_width = 50
         self.explosion_height = 50
@@ -57,6 +62,8 @@ class Settings:
         self.ship_speed_factor = 4
         # задание начальной скорости пуль
         self.bullet_speed_factor = 10
+        # задание начальной скорости полета авиабомбы
+        self.air_bomb_speed_factor = 7
         # задание начальной скорости кораблей пришельцев
         self.alien_speed_factor = 5
         # стартовые очки за пришельца
@@ -70,5 +77,5 @@ class Settings:
         self.bullet_speed_factor *= self.speedup_scale
         self.alien_speed_factor *= self.speedup_scale
         self.alien_points *= self.score_scale
-
+        self.air_bomb_speed_factor *= 1
 

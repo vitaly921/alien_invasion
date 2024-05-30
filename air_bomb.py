@@ -15,7 +15,7 @@ class AirBomb(Sprite):
         # загрузка изображения авиабомбы
         self.image = pygame.image.load('images/air_bomb.png')
         # задание размеров, конвертация, получение прямоугольника изображения
-        self.image = pygame.transform.scale(self.image, (40, 30))
+        self.image = pygame.transform.scale(self.image, (ai_settings.air_bomb_width, ai_settings.air_bomb_height))
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
 
@@ -25,7 +25,7 @@ class AirBomb(Sprite):
         # преобразование координаты y объекта в вещественное число
         self.y = float(self.rect.y)
         # задание скорости объекта
-        self.speed_factor = 7
+        self.speed_factor = ai_settings.air_bomb_speed_factor
 
     def update(self):
         """Обновление позиции объекта"""
