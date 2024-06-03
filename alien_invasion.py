@@ -8,6 +8,7 @@ from button import Button
 from hint import Hint
 from game_title import GameTitle
 from scoreboard import Scoreboard
+from time import time
 
 
 def run_game():
@@ -47,6 +48,7 @@ def run_game():
 
     # создание группы для хранения пуль, кораблей игрока, флота пришельцев и звезд
     bullets = Group()
+    alien_bullets = Group()
     aliens = Group()
     stars = Group()
     ships = Group()
@@ -68,7 +70,7 @@ def run_game():
     # состояние паузы
     pause = False
 
-    clock = pygame.time.Clock()
+    last_shot_time = time()
     # основной цикл программы
     while True:
         # обработка событий
@@ -83,6 +85,7 @@ def run_game():
             gf.update_explosions(ai_settings, explosions)
             # обновление позиций пуль/авиабомб, проверка их столкновения с пришельцами
             gf.update_ship_projectiles(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs)
+            last_shot_time = gf.update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bullets)
 
         # обновление кораблей игрока (в т.ч. позиций) в различных состояниях игры
         number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, explosions, air_bombs)
@@ -90,7 +93,8 @@ def run_game():
         gf.update_stars(stars)
         # обновления экрана
         gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button,
-                         game_title, sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs)
+                         game_title, sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button,
+                         explosions, air_bombs, alien_bullets)
         #clock.tick(300)
 
 # запуск игры

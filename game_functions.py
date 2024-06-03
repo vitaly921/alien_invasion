@@ -1,6 +1,7 @@
+import random
 import sys
 import pygame
-from time import sleep
+from time import sleep, time
 from random import randint
 from bullet import Bullet
 from air_bomb import AirBomb
@@ -290,7 +291,7 @@ def create_gradient(width, height):
 
 
 def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button, game_title,
-                  sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs):
+                  sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs, alien_bullets):
     """Обновляет экран и показывает всё содержимоё на нём"""
     # вариант заполнения экрана сплошным цветом фона
     # screen.fill(ai_settings.bg_color)
@@ -310,6 +311,9 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     # поочередная отрисовка авиабомб
     for air_bomb in air_bombs.sprites():
         air_bomb.draw_air_bomb()
+
+    for bullet in alien_bullets.sprites():
+        bullet.draw_bullet()
 
     # отрисовка корабля игрока и группы пришельцев
     ship.blitme()
@@ -379,7 +383,7 @@ def update_ship_projectiles(ai_settings, screen, ship, aliens, bullets, stats, s
 def check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs):
     """Обработка столкновений пуль/авиабомб с пришельцами"""
     # обработка столкновений пуль с пришельцами: при столкновении удаляется и пуля и пришелец
-    bullets_collisions = pygame.sprite.groupcollide(bullets, aliens, False, True)
+    bullets_collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
     # обработка столкновений авиабомб с пришельцами: при столкновении удаляются только пришельцы
     air_bombs_collisions = pygame.sprite.groupcollide(air_bombs, aliens, False, True)
 
@@ -421,6 +425,29 @@ def handle_collision(collisions, ai_settings, screen, explosions, stats, sb):
             create_explosion(explosions, ai_settings, screen, alien)
         # вызов функции для обновления счета игры и проверки рекорда
         update_score(ai_settings, stats, aliens, sb)
+
+
+def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bullets):
+    """"""
+    current_time = time()
+    if current_time - last_shot_time > 3:
+        last_shot_time = current_time
+        shooting_alien = random.choice(aliens.sprites())
+        alien_index = aliens.sprites().index(shooting_alien)
+        print(f"Shooting_alien: {shooting_alien}, Index: {alien_index}")
+        new_alien_bullet = Bullet(ai_settings, screen, shooting_alien, True)
+        alien_bullets.add(new_alien_bullet)
+
+    alien_bullets.update()
+
+    for bullet in alien_bullets.copy():
+        if bullet.rect.top > screen.get_rect().bottom:
+            alien_bullets.remove(bullet)
+
+        # обновление окна
+    pygame.display.flip()
+
+    return last_shot_time
 
 
 def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs, explosions):

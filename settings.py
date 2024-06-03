@@ -16,9 +16,12 @@ class Settings:
 
         # параметры пули (кроме скорости)
         #self.bullet_speed_factor = 7
-        self.bullet_width = 5
-        self.bullet_height = 15
-        self.bullet_color = (222, 164, 109)
+        self.bullet_width_for_ship = 5
+        self.bullet_height_for_ship = 15
+        self.bullet_width_for_alien = 7
+        self.bullet_height_for_alien = 25
+        self.bullet_color_for_ship = (222, 164, 109)
+        self.bullet_color_for_alien = (200, 50, 100)
         self.bullets_allowed = 4
 
         # параметры авиабомбы
