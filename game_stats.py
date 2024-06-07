@@ -3,6 +3,8 @@ class GameStats:
     def __init__(self, ai_settings):
         """Инициализация статистики"""
         # инициализация настроек и функции сброса статистики
+        self.score = None
+        self.level = None
         self.ai_settings = ai_settings
         self.reset_stats()
 

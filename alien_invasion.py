@@ -84,11 +84,11 @@ def run_game():
             # обновление координат, продолжительности и прозрачности эффекта взрыва
             gf.update_explosions(ai_settings, explosions)
             # обновление позиций пуль/авиабомб, проверка их столкновения с пришельцами
-            gf.update_ship_projectiles(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs)
-            last_shot_time = gf.update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bullets)
+            gf.update_ship_projectiles(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs, alien_bullets)
+            last_shot_time = gf.update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bullets, stats)
 
         # обновление кораблей игрока (в т.ч. позиций) в различных состояниях игры
-        number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, sb, explosions, air_bombs)
+        number_ship, ship = gf.update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, alien_bullets, sb, explosions, air_bombs)
         # обновление позиции фона звёзд
         gf.update_stars(stars)
         # обновления экрана

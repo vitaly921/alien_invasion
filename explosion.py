@@ -4,7 +4,7 @@ from pygame.sprite import Sprite
 
 class Explosion(Sprite):
     """Наследуемый класс для создания экземпляра эффекта взрыва"""
-    def __init__(self, ai_settings, screen, pos_x, pos_y):
+    def __init__(self, ai_settings, screen, pos_x, pos_y, small=False):
         """Инициализация атрибутов"""
         super().__init__()
         self.ai_settings = ai_settings
@@ -15,8 +15,12 @@ class Explosion(Sprite):
 
         # загрузка изображения эффекта взрыва
         self.image = pygame.image.load('images/explosion.png')
-        # задание размеров, конвертация, получение прямоугольника изображения
-        self.image = pygame.transform.scale(self.image,(ai_settings.explosion_width, ai_settings.explosion_height))
+        if small:
+            # задание размеров, конвертация, получение прямоугольника изображения
+            self.image = pygame.transform.scale(self.image, (5, 5))
+        else:
+            # задание размеров, конвертация, получение прямоугольника изображения
+            self.image = pygame.transform.scale(self.image,(ai_settings.explosion_width, ai_settings.explosion_height))
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
 
