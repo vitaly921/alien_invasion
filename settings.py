@@ -32,7 +32,7 @@ class Settings:
         # параметры для эффекта взрыва
         self.explosion_width = 50
         self.explosion_height = 50
-        self.explosion_duration = 350
+        self.explosion_duration = 950
         self.explosion_alpha = 200
 
         # настройки для флота пришельцев (кроме скорости)

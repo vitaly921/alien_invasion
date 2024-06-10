@@ -3,16 +3,16 @@ import sys
 import pygame
 from time import sleep, time
 from random import randint
-from bullet import Bullet
+from bullet import Bullet, ShipBullet, AlienBullet
 from air_bomb import AirBomb
 from alien import Alien
 from star import Star
 from ship import Ship
-from explosion import Explosion
+from explosion import Explosion, SmallExplosion
 
 
 def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
-                 sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs):
+                 sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions):
     """Обработка событий в игре"""
     for event in pygame.event.get():
         # обработка события закрытия окна игры
@@ -24,7 +24,7 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
         # обработка события нажатия клавиш
         elif event.type == pygame.KEYDOWN:
             check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb, pause, pause_button,
-                                 hint_for_pause_button, air_bombs)
+                                 hint_for_pause_button, air_bombs, explosions)
         # обработка события отпускания клавиш
         elif event.type == pygame.KEYUP:
             check_keyup_events(event, ship)
@@ -38,7 +38,7 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
 
 
 def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb, pause, pause_button,
-                         hint_for_pause_button, air_bombs):
+                         hint_for_pause_button, air_bombs, explosions):
     """Реагирует на нажатие клавиш"""
     if event.key == pygame.K_ESCAPE:
         # запись в файл обновленного значения рекорда
@@ -52,7 +52,7 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
         ship.moving_left = True
     elif event.key == pygame.K_SPACE:
         # вызов функции открытия огня по противнику
-        fire_bullet(ai_settings, screen, ship, bullets, stats)
+        fire_bullet(ai_settings, screen, ship, bullets, stats, explosions)
     elif event.key == pygame.K_RSHIFT:
         # вызов функции для сброса авиабомб
         drop_air_bomb(ai_settings, screen, ship, air_bombs, stats)
@@ -424,12 +424,12 @@ def handle_collision(collisions, ai_settings, screen, explosions, stats, sb):
         # для каждого корабля из списка кораблей, по которым попала пуля
         for alien in aliens:
             # вызов функции для создания эффекта взрыва конкретного корабля
-            create_explosion(explosions, ai_settings, screen, alien)
+            create_explosion(explosions, ai_settings, screen, alien, for_alien=True)
         # вызов функции для обновления счета игры и проверки рекорда
         update_score(ai_settings, stats, aliens, sb)
 
 
-def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bullets, stats):
+def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bullets, stats, explosions):
     """Обновление позиций и кол-ва пуль пришельцев"""
     # фиксация текущего момента времени
     current_time = time()
@@ -448,9 +448,11 @@ def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bull
         # для каждого стреляющего корабля из уникальной выборки
         for shooting_alien in shooting_aliens:
             # создание пули для с параметрами для пришельца
-            new_alien_bullet = Bullet(ai_settings, screen, shooting_alien, True)
+            new_alien_bullet = AlienBullet(ai_settings, screen, shooting_alien)
+            small_explosion = SmallExplosion(ai_settings, screen, shooting_alien, for_alien=True)
             # добавление новой пули в группу пуль пришельцев
             alien_bullets.add(new_alien_bullet)
+            explosions.add(small_explosion)
 
     # обновление позиций пуль пришельцев
     alien_bullets.update()
@@ -474,7 +476,7 @@ def check_alien_bullet_ship_collision(ai_settings, stats, screen, ship, aliens, 
     if collide_alien_bullet:
         # сброс флагов движения корабля игрока в значение False
         reset_moving_flags_ship(ship)
-        create_explosion(explosions, ai_settings, screen, ship, alien=False)
+        create_explosion(explosions, ai_settings, screen, ship)
         last_explosion = explosions.sprites()[-1]
         # отображение двух последних эффектов взрыва
         last_explosion.blitme()
@@ -523,16 +525,17 @@ def check_location_ship(ship, aliens):
         ship.center_ship()
 
 
-def create_explosion(explosions, ai_settings, screen, game_ship, alien=True):
+def create_explosion(explosions, ai_settings, screen, game_ship, for_alien=False):
     """Функция создания эффекта взрыва для корабля игрока/пришельца"""
     # создание экземпляра взрыва по координатам пришельца
-    if alien:
-        explosion = Explosion(ai_settings, screen, game_ship.x, game_ship.y)
+    if for_alien:
+        explosion = Explosion(ai_settings, screen, game_ship, for_alien=True)
     # создание экземпляра взрыва по координатам корабля игрока
     else:
-        explosion = Explosion(ai_settings, screen, game_ship.centerx-25, game_ship.centery-25)
+        explosion = Explosion(ai_settings, screen, game_ship)
     # добавление экземпляра в группу
     explosions.add(explosion)
+
 
 
 def update_score(ai_settings, stats, aliens, sb):
@@ -581,11 +584,13 @@ def create_ships(ai_settings, screen, ships):
     return ships
 
 
-def fire_bullet(ai_settings, screen, ship, bullets, stats):
+def fire_bullet(ai_settings, screen, ship, bullets, stats, explosions):
     """Позволяет совершить выстрел если максимум пуль еще не достигнут"""
     if len(bullets) < ai_settings.bullets_allowed and stats.game_active:
         # создание новой пули и включение её в группу bullets
-        new_bullet = Bullet(ai_settings, screen, ship)
+        new_bullet = ShipBullet(ai_settings, screen, ship)
+        new_small_explosions = SmallExplosion(ai_settings, screen, ship)
+        explosions.add(new_small_explosions)
         bullets.add(new_bullet)
 
 
@@ -809,8 +814,8 @@ def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullet
 def show_ship_alien_explosion(explosions, ai_settings, screen, collide_alien, ship, aliens):
     """Функция для отображения эффекта взрыва корабля и пришельца при столкновении"""
     # создание эффекта взрыва на месте пришельца и корабля игрока
-    create_explosion(explosions, ai_settings, screen, collide_alien)
-    create_explosion(explosions, ai_settings, screen, ship, alien=False)
+    create_explosion(explosions, ai_settings, screen, collide_alien, for_alien=True)
+    create_explosion(explosions, ai_settings, screen, ship)
     # сохранение двух последних эффектов в переменной
     last_two_explosions = explosions.sprites()[-2:]
     # отображение двух последних эффектов взрыва
