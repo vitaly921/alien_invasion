@@ -537,7 +537,6 @@ def create_explosion(explosions, ai_settings, screen, game_ship, for_alien=False
     explosions.add(explosion)
 
 
-
 def update_score(ai_settings, stats, aliens, sb):
     """Функция для обновления счета игры и проверки рекорда"""
     # увеличение значения счёта, который учитывает все попадания одного снаряда
