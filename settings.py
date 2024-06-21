@@ -21,7 +21,7 @@ class Settings:
         self.bullet_width_for_alien = 7
         self.bullet_height_for_alien = 25
         self.bullet_color_for_ship = (222, 164, 109)
-        self.bullet_color_for_alien = (200, 50, 100)
+        self.bullet_color_for_alien = (255, 55, 0)
         self.bullets_allowed = 4
 
         # параметры авиабомбы
