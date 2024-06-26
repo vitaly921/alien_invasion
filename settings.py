@@ -23,6 +23,7 @@ class Settings:
         self.bullet_color_for_ship = (222, 164, 109)
         self.bullet_color_for_alien = (255, 55, 0)
         self.bullets_allowed = 4
+        self.bullet_score = 500
 
         # параметры авиабомбы
         self.air_bomb_width = 40

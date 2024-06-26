@@ -63,7 +63,7 @@ def run_game():
     ship = ships.sprites()[number_ship]
 
     # создание флота пришельцев
-    gf.create_fleet(ai_settings, screen, ship, aliens)
+    gf.create_fleet(ai_settings, screen, ship, aliens, stats)
     # создание группы звезд на экране
     gf.create_stars(ai_settings, screen, stars)
 

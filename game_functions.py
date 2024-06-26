@@ -5,7 +5,7 @@ from time import sleep, time
 from random import randint
 from bullet import Bullet, ShipBullet, AlienBullet
 from air_bomb import AirBomb
-from alien import Alien
+from alien import Alien, BoostedAlien
 from star import Star
 from ship import Ship
 from explosion import Explosion, SmallExplosion
@@ -266,7 +266,7 @@ def start_game(stats, aliens, bullets, ai_settings, screen, ship, sb):
     # переход игры в активный режим
     stats.game_active = True
     # создание нового флота пришельцев и перемещение корабля игрока в начальное положение
-    create_fleet(ai_settings, screen, ship, aliens)
+    create_fleet(ai_settings, screen, ship, aliens, stats)
     #ship.center_ship()
 
 
@@ -380,23 +380,27 @@ def update_ship_projectiles(ai_settings, screen, ship, aliens, bullets, stats, s
 def check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bullets, stats, sb, explosions, air_bombs, alien_bullets):
     """Обработка столкновений пуль/авиабомб с пришельцами"""
     # обработка столкновений пуль с пришельцами: при столкновении удаляется и пуля и пришелец
-    bullets_collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    bullets_aliens_collisions = pygame.sprite.groupcollide(bullets, aliens, True, False)
     # обработка столкновений авиабомб с пришельцами: при столкновении удаляются только пришельцы
-    air_bombs_collisions = pygame.sprite.groupcollide(air_bombs, aliens, False, True)
+    air_bombs_aliens_collisions = pygame.sprite.groupcollide(air_bombs, aliens, False, True)
     # обработка столкновения пули игрока с пулей пришельца: взаимное уничтожение
-    pygame.sprite.groupcollide(bullets, alien_bullets, True, True)
+    bullets_collision = pygame.sprite.groupcollide(bullets, alien_bullets, True, True)
 
     # для случая столкновения пуль с пришельцами
-    if bullets_collisions:
+    if bullets_aliens_collisions:
         # дальнейшая обработка
-        handle_collision(bullets_collisions, ai_settings, screen, explosions, stats, sb)
+        handle_collision(bullets_aliens_collisions, ai_settings, screen, explosions, stats, sb)
     # для случая столкновения авиабомб с пришельцами
-    elif air_bombs_collisions:
+    elif air_bombs_aliens_collisions:
         # дальнейшая обработка
-        handle_collision(air_bombs_collisions, ai_settings, screen, explosions, stats, sb)
+        handle_collision(air_bombs_aliens_collisions, ai_settings, screen, explosions, stats, sb)
+    # для случая столкновения снарядов корабля и пришельца друг с другом
+    elif bullets_collision:
+        # обновление счёта игры
+        update_score(ai_settings, stats, aliens, sb, for_bullets=True)
 
     # для случая отсутствия флота пришельцев после его уничтожения
-    if len(aliens) == 0 and (bullets_collisions or air_bombs_collisions):
+    if len(aliens) == 0 and (bullets_aliens_collisions or air_bombs_aliens_collisions):
         # вызов функции для отображения взрыва последнего корабля пришельца
         show_last_alien_explosion(explosions)
         # функция перехода на новый уровень игры
@@ -420,6 +424,8 @@ def handle_collision(collisions, ai_settings, screen, explosions, stats, sb):
     for aliens in collisions.values():
         # для каждого корабля из списка кораблей, по которым попала пуля
         for alien in aliens:
+            if isinstance(alien, BoostedAlien):
+                alien.hit()
             # вызов функции для создания эффекта взрыва конкретного корабля
             create_explosion(explosions, ai_settings, screen, alien, for_alien=True)
         # вызов функции для обновления счета игры и проверки рекорда
@@ -478,12 +484,12 @@ def check_alien_bullet_ship_collision(ai_settings, stats, screen, ship, aliens, 
         # отображение двух последних эффектов взрыва
         last_explosion.blitme()
         pygame.display.flip()
-        # уничтожение пришельца из группы
+        #
         collide_alien_bullet.kill()
         # задание паузы игры
         sleep(1.5)
 
-        ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets)
+        ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions)
         return True
 
 
@@ -508,7 +514,7 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_b
     sb.prep_level()
 
     # создание нового флота пришельцев
-    create_fleet(ai_settings, screen, ship, aliens)
+    create_fleet(ai_settings, screen, ship, aliens, stats)
     # вызов функции проверки нахождения корабля игрока в месте появления нового флота пришельцев
     check_location_ship(ship, aliens)
 
@@ -536,10 +542,15 @@ def create_explosion(explosions, ai_settings, screen, game_ship, for_alien=False
     explosions.add(explosion)
 
 
-def update_score(ai_settings, stats, aliens, sb):
+def update_score(ai_settings, stats, aliens, sb, for_bullets=False):
     """Функция для обновления счета игры и проверки рекорда"""
-    # увеличение значения счёта, который учитывает все попадания одного снаряда
-    stats.score += ai_settings.alien_points * len(aliens)
+    # для случая если флаг for_bullets активен
+    if for_bullets:
+        # фиксированное увеличение счета игры
+        stats.score += ai_settings.bullet_score
+    else:
+        # увеличение значения счёта, который учитывает все попадания одного снаряда
+        stats.score += ai_settings.alien_points * len(aliens)
     # обновление словаря со значением счёта игры на текущем уровне
     stats.score_dict[stats.level] = stats.score
     # формирование изображения с текстом обновленного счёта
@@ -629,10 +640,14 @@ def get_number_rows_aliens(ai_settings, ship_height, alien_height):
     return number_rows
 
 
-def create_alien(ai_settings, screen, aliens, alien_number, row_number):
+def create_alien(ai_settings, screen, aliens, alien_number, row_number, boosted=False):
     """Создание пришельца в ряду"""
-    # создание нового экземпляра пришельца для его отображения
-    alien = Alien(ai_settings, screen)
+    if boosted:
+        alien = BoostedAlien(ai_settings, screen)
+        print('HELLO')
+    else:
+        # создание нового экземпляра пришельца для его отображения
+        alien = Alien(ai_settings, screen)
     # вычисление ширины и высоты пришельца
     alien_width = alien.rect.width
     alien_height = alien.rect.height
@@ -647,7 +662,7 @@ def create_alien(ai_settings, screen, aliens, alien_number, row_number):
     aliens.add(alien)
 
 
-def create_fleet(ai_settings, screen, ship, aliens):
+def create_fleet(ai_settings, screen, ship, aliens, stats):
     """Создание флота пришельцев"""
     # создание экземпляра пришельца для вычисления его ширины и высоты
     alien = Alien(ai_settings, screen)
@@ -655,12 +670,20 @@ def create_fleet(ai_settings, screen, ship, aliens):
     number_aliens_x = get_number_aliens_x(ai_settings, alien.rect.width)
     # вычисление количества рядов пришельцев
     number_rows_aliens = get_number_rows_aliens(ai_settings, ship.rect.height, alien.rect.height)
+
+    count_boosted_aliens = 5
+    print(count_boosted_aliens)
+    index_boosted_aliens = random.sample(range(number_aliens_x*number_rows_aliens), count_boosted_aliens)
+
     # перебор рядов пришельцев для создания флота
     for row_number in range(number_rows_aliens):
         # создание ряда пришельцев
         for alien_number in range(number_aliens_x):
-            # создание пришельца в ряду
-            create_alien(ai_settings, screen, aliens, alien_number, row_number)
+            if (row_number * number_aliens_x + alien_number) in index_boosted_aliens:
+                create_alien(ai_settings, screen, aliens, alien_number, row_number, boosted=True)
+            else:
+                # создание пришельца в ряду
+                create_alien(ai_settings, screen, aliens, alien_number, row_number)
 
 
 def get_number_stars_x(ai_settings, star_width):
@@ -728,7 +751,7 @@ def change_fleet_direction(ai_settings, aliens):
     ai_settings.fleet_direction *= -1
 
 
-def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, collision=True):
+def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions, collision=True):
     """Обработка столкновения корабля с флотом пришельцев / достижения флотом нижнего края экрана"""
     # для случая, если у игрока остались корабли (попытки игры)
     if stats.ship_left > 1:
@@ -746,7 +769,7 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullet
             # очистка на экране группы пришельцев
             aliens.empty()
             # создание нового флота в начальной позиции на текущем уровне
-            create_fleet(ai_settings, screen, ship, aliens)
+            create_fleet(ai_settings, screen, ship, aliens, stats)
 
     # для случая если кораблей для игры (попыток) не осталось
     else:
@@ -762,11 +785,12 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullet
     # очистка пуль корабля и пришельцев
     bullets.empty()
     alien_bullets.empty()
+    explosions.empty()
     # задание расположения объекта корабля снизу в центре экрана
     ship.center_ship()
 
 
-def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets):
+def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions):
     """Проверка достижения флотом нижнего края экрана"""
     screen_rect = screen.get_rect()
     # при достижении кораблем флота нижнего края экрана вызывается функция обработки этого события
@@ -777,7 +801,7 @@ def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb, a
             # задание паузы игры
             sleep(1.5)
             # вызов функции обработки уничтожения корабля
-            ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, collisions)
+            ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions, collisions)
             return True
 
 
@@ -802,10 +826,8 @@ def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullet
         else:
             # задание паузы игры
             sleep(1.5)
-        # очистка группы эффектов взрыва
-        explosions.empty()
         # вызов функции обработки уничтожения корабля
-        ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets)
+        ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions)
         return True
 
 
@@ -829,7 +851,7 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
     # проверка столкновения корабля игрока и пришельца
     collision_with_alien = check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions, air_bombs, alien_bullets)
     # проверка достижения флотом пришельцев нижнего края экрана
-    getting_bottom = check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets)
+    getting_bottom = check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions)
     # проверка попадания в корабль пули пришельца
     collision_with_alien_bullet = check_alien_bullet_ship_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions)
 
