@@ -3,7 +3,7 @@ from pygame.sprite import Sprite
 
 
 class Ship(Sprite):
-    def __init__(self, ai_settings, screen, number_ship = 1):
+    def __init__(self, ai_settings, screen, number_ship=1):
         """Создание корабля и задание его начальной позиции"""
         super(Ship, self).__init__()
         # задание объекта, на котором выводится корабль
@@ -12,23 +12,15 @@ class Ship(Sprite):
         # задание настроек для конкретного корабля
         self.ai_settings = ai_settings
         # загрузка изображения корабля
-        '''self.images = []
-        self.filenames = ["images/ship1.png", "images/ship2.png", "images/ship3.png"]
-        for filename in self.filenames:
-            self.image = pygame.image.load(filename)
-            self.images.append(self.image)
-
-        self.image = self.images[number_ship-1]
-        '''
         if self.number_ship == 1:
-            self.image_filename = "images/ship1.png"
+            self.image_filename = ai_settings.image_first_ship
         elif self.number_ship == 2:
-            self.image_filename = "images/ship2.png"
+            self.image_filename = ai_settings.image_second_ship
         elif self.number_ship == 3:
-            self.image_filename = "images/ship3.png"
+            self.image_filename = ai_settings.image_third_ship
 
         self.image = pygame.image.load(self.image_filename)
-        self.image = pygame.transform.scale(self.image, (80, 80))
+        self.image = pygame.transform.scale(self.image, (ai_settings.ship_width, ai_settings.ship_height))
         self.image = self.image.convert_alpha()
         # получение прямоугольника по границам изображения и экрана
         self.rect = self.image.get_rect()

@@ -14,6 +14,23 @@ class Settings:
         #self.ship_speed_factor = 5
         self.ship_limit = 3
 
+        # параметры пришельца
+        self.image_alien = 'images/alien.png'
+        self.image_boosted_alien = 'images/boosted_alien.png'
+        self.image_damaged_alien = 'images/damaged_alien.png'
+        self.alien_width = 60
+        self.alien_height = 40
+        # кол-во очков прочности "усиленного" пришельца
+        self.allowed_count_hits = 2
+
+        # параметры корабля игрока
+        self.image_first_ship = 'images/ship1.png'
+        self.image_second_ship = 'images/ship2.png'
+        self.image_third_ship = 'images/ship3.png'
+        self.ship_width = 80
+        self.ship_height = 80
+
+
         # параметры пули (кроме скорости)
         #self.bullet_speed_factor = 7
         self.bullet_width_for_ship = 5
@@ -72,6 +89,8 @@ class Settings:
         self.alien_speed_factor = 5
         # стартовые очки за пришельца
         self.alien_points = 200
+        # начальное кол-во "усиленных" пришельцев
+        self.count_boosted_aliens = 2
         # начальный флаг задания направления (при 1 - вправо, при -1 -влево)
         self.fleet_direction = 1
 
@@ -81,5 +100,6 @@ class Settings:
         self.bullet_speed_factor *= self.speedup_scale
         self.alien_speed_factor *= self.speedup_scale
         self.alien_points *= self.score_scale
+        self.count_boosted_aliens += 2
         self.air_bomb_speed_factor *= 1
 

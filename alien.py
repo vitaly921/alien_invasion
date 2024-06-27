@@ -12,8 +12,8 @@ class Alien(Sprite):
         self.ai_settings = ai_settings
 
         # загрузка изображения, задание его размеров, конвертация и получение прямоугольника
-        self.image = pygame.image.load('images/alien.png')
-        self.image = pygame.transform.scale(self.image, (60, 40))
+        self.image = pygame.image.load(ai_settings.image_alien)
+        self.image = pygame.transform.scale(self.image, (ai_settings.alien_width, ai_settings.alien_height))
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
         self.screen_rect = self.screen.get_rect()
@@ -52,20 +52,28 @@ class BoostedAlien(Alien):
         super().__init__(ai_settings, screen)
         # дополнительные атрибуты
         # число попаданий
-        self.hit_count = 0
+        self.hits_count = 0
         # изображение состояний усиленного пришельца
-        self.image_boosted = pygame.image.load('images/boosted_alien.png')
-        self.image_damaged = pygame.image.load('images/damaged_alien.png')
+        self.image_boosted = pygame.image.load(ai_settings.image_boosted_alien)
+        self.image_damaged = pygame.image.load(ai_settings.image_damaged_alien)
 
-        self.image_boosted = pygame.transform.scale(self.image_boosted, (60, 40))
-        self.image_damaged = pygame.transform.scale(self.image_damaged, (60, 40))
+        self.image_boosted = pygame.transform.scale(self.image_boosted, (ai_settings.alien_width, ai_settings.alien_height))
+        self.image_damaged = pygame.transform.scale(self.image_damaged, (ai_settings.alien_width, ai_settings.alien_height))
+
+        self.image_boosted = self.image_boosted.convert_alpha()
+        self.image_damaged = self.image_damaged.convert_alpha()
 
         self.image = self.image_boosted
 
-    def hit(self):
+    def hit(self, ai_settings):
         """Обработка попаданий по усиленному пришельцу"""
-        self.hit_count += 1
-        if self.hit_count == 1:
+        # увеличение числа попаданий на 1
+        self.hits_count += 1
+        # если число попаданий = 1
+        if self.hits_count == 1:
+            # загрузка изображения поврежденного пришельца
             self.image = self.image_damaged
-        elif self.hit_count >= 2:
+        # если число попаданий превысило допустимое
+        elif self.hits_count >= ai_settings.allowed_count_hits:
+            # удаление пришельца из группы
             self.kill()
