@@ -21,7 +21,7 @@ class Settings:
         self.alien_width = 60
         self.alien_height = 40
         # кол-во очков прочности "усиленного" пришельца
-        self.allowed_count_hits = 2
+        self.allowed_count_hits = 4
 
         # параметры корабля игрока
         self.image_first_ship = 'images/ship1.png'
@@ -50,7 +50,7 @@ class Settings:
         # параметры для эффекта взрыва
         self.explosion_width = 50
         self.explosion_height = 50
-        self.explosion_duration = 950
+        self.explosion_duration = 500
         self.explosion_alpha = 200
 
         # настройки для флота пришельцев (кроме скорости)

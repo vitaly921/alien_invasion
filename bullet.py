@@ -20,15 +20,23 @@ class Bullet(Sprite):
 
 class ShipBullet(Bullet):
     """Класс для управления пулями корабля игрока"""
-    def __init__(self, ai_settings, screen, ship):
+    def __init__(self, ai_settings, screen, ship, ship_type, x, y, boosted=False):
         super().__init__(ai_settings, screen, ship)
+        self.boosted = boosted
+        self.x = x
+        self.y = y
+        self.ship_type = ship_type
+        print('Огонь ведет ' + str(self.ship_type + 1) + ' корабль')
         # создание изображения пули в виде прямоугольника
         self.rect = pygame.Rect(0, 0, ai_settings.bullet_width_for_ship, ai_settings.bullet_height_for_ship)
         # задание расположения пули относительно корабля игрока
-        self.rect.centerx = ship.rect.centerx
-        self.rect.top = ship.rect.top
+        self.rect.centerx = self.x
+        self.rect.top = self.y
         # задание цвета пули
-        self.color = ai_settings.bullet_color_for_ship
+        if self.boosted:
+            self.color = (255, 0, 0)
+        else:
+            self.color = ai_settings.bullet_color_for_ship
         # преобразование координаты y в вещественное число
         self.y = float(self.rect.y)
 

@@ -42,6 +42,7 @@ class Explosion(Sprite):
         # передача посчитанной координаты Х прямоугольнику изображения взрыва в формате int
         self.rect.x = self.x
 
+
     def blitme(self):
         """Отрисовка эффекта взрыва на экране"""
         self.screen.blit(self.image, self.rect)
@@ -49,11 +50,15 @@ class Explosion(Sprite):
 
 class SmallExplosion(Explosion):
     """Наследуемый класс для создания мини-эффекта взрыва """
-    def __init__(self, ai_settings, screen, game_ship, for_alien=False):
+    def __init__(self, ai_settings, screen, game_ship, ship_type, for_alien=False, left=False, right=False):
         """Инициализация атрибутов"""
         super().__init__(ai_settings, screen, game_ship, for_alien)
+        self.ship_type = ship_type
+        self.game_ship = game_ship
+        self.left = left
+        self.right = right
         # изменение размеров изображения, конвертация, обновление прямоугольника
-        self.image = pygame.transform.scale(self.image, (25, 25))
+        self.image = pygame.transform.scale(self.image, (20, 20))
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
 
@@ -64,9 +69,25 @@ class SmallExplosion(Explosion):
             self.x = self.game_ship.rect.centerx - 12
             self.y = self.game_ship.rect.bottom - 8
         else:
-            # закон изменения координат мини-взрыва относительно корабля игрока
-            self.x = self.game_ship.centerx - 13
-            self.y = self.game_ship.centery - 60
+            if self.ship_type == 0:
+                # закон изменения координат мини-взрыва относительно корабля игрока
+                self.x = self.game_ship.centerx - 11
+                self.y = self.game_ship.centery - 58
+            elif self.ship_type == 1 and self.left:
+                self.x = self.game_ship.rect.left+12
+                self.y = self.game_ship.rect.top+3
+            elif self.ship_type == 1 and self.right:
+                self.x = self.game_ship.rect.right-32
+                self.y = self.game_ship.rect.top+3
+            elif self.ship_type == 2 and self.left==False and self.right==False:
+                self.x = self.game_ship.centerx - 10
+                self.y = self.game_ship.centery - 57
+            elif self.ship_type == 2 and self.left:
+                self.x = self.game_ship.rect.left+12
+                self.y = self.game_ship.rect.top+8
+            elif self.ship_type == 2 and self.right:
+                self.x = self.game_ship.rect.right-30
+                self.y = self.game_ship.rect.top+8
         # передача посчитанных координат прямоугольнику изображения взрыва в формате int
         self.rect.x = self.x
         self.rect.y = self.y

@@ -75,7 +75,7 @@ def run_game():
     while True:
         # обработка событий
         gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
-                        sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions)
+                        sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions, number_ship)
 
         # действия только во время активного состояния игры
         if stats.game_active:
