@@ -38,6 +38,7 @@ class Settings:
         self.bullet_width_for_alien = 7
         self.bullet_height_for_alien = 25
         self.bullet_color_for_ship = (222, 164, 109)
+        self.boosted_bullet_color_for_ship = (255, 0, 0)
         self.bullet_color_for_alien = (255, 55, 0)
         self.bullets_allowed = 4
         self.bullet_score = 500
@@ -81,8 +82,10 @@ class Settings:
         """Инициализация настроек, изменяющихся по ходу игры"""
         # задание начальной скорости корабля игрока
         self.ship_speed_factor = 4
-        # задание начальной скорости пуль
-        self.bullet_speed_factor = 10
+        # задание начальной скорости пули корабля игрока
+        self.ship_bullet_speed_factor = 10
+        # задание начальной скорости пули пришельца
+        self.alien_bullet_speed_factor = 5
         # задание начальной скорости полета авиабомбы
         self.air_bomb_speed_factor = 7
         # задание начальной скорости кораблей пришельцев

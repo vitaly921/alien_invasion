@@ -51,16 +51,16 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
         ship.moving_right = True
     elif event.key == pygame.K_LEFT and stats.game_active:
         ship.moving_left = True
+    elif event.key == pygame.K_UP and stats.game_active:
+        ship.moving_up = True
+    elif event.key == pygame.K_DOWN and stats.game_active:
+        ship.moving_down = True
     elif event.key == pygame.K_SPACE:
         # вызов функции открытия огня по противнику
         fire_bullet(ai_settings, screen, ship, bullets, stats, explosions, ship_type)
     elif event.key == pygame.K_RSHIFT:
         # вызов функции для сброса авиабомб
         drop_air_bomb(ai_settings, screen, ship, air_bombs, stats)
-    elif event.key == pygame.K_UP and stats.game_active:
-        ship.moving_up = True
-    elif event.key == pygame.K_DOWN and stats.game_active:
-        ship.moving_down = True
         # обработка нажатия клавиши "Enter" во время неактивной игры
     elif event.key == pygame.K_RETURN and not stats.game_active:
         # вызов функции для начала игры
@@ -612,34 +612,39 @@ def create_ships(ai_settings, screen, ships):
 def fire_bullet(ai_settings, screen, ship, bullets, stats, explosions, ship_type):
     """Позволяет совершить выстрел если максимум пуль еще не достигнут"""
     #print('Огонь ведет ' + str(ship_type+1) + ' корабль')
+    # если текущий корабль первый
     if ship_type == 0:
+        # если кол-во пуль меньше максимально допустимого значения и игра в активном состоянии
         if len(bullets) < ai_settings.bullets_allowed and stats.game_active:
-            # создание новой пули и включение её в группу bullets
+            # создание новой пули
             new_bullet = ShipBullet(ai_settings, screen, ship, ship_type, ship.rect.centerx, ship.rect.top)
+            # создание эффекта выстрела при выстреле
             new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type)
+            # добавление эффекта выстрела в группу взрывов
             explosions.add(new_small_explosions)
+            # добавление пули в группу пуль
             bullets.add(new_bullet)
     elif ship_type == 1:
-        left_bullet = ShipBullet(ai_settings, screen, ship, ship_type, ship.rect.left+22, ship.rect.top+20)
+        left_bullet = ShipBullet(ai_settings, screen, ship, ship_type, left=True)
         left_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, left=True)
         explosions.add(left_small_explosions)
-        right_bullet = ShipBullet(ai_settings, screen, ship, ship_type, ship.rect.right-22, ship.rect.top+20)
+        right_bullet = ShipBullet(ai_settings, screen, ship, ship_type, right=True)
         right_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, right=True)
         explosions.add(right_small_explosions)
         bullets.add(left_bullet)
         bullets.add(right_bullet)
     elif ship_type == 2:
-        left_bullet = ShipBullet(ai_settings, screen, ship, ship_type, ship.rect.left + 2, ship.rect.top + 20)
+        left_bullet = ShipBullet(ai_settings, screen, ship, ship_type, left=True)
         left_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, left=True)
         explosions.add(left_small_explosions)
-        middle_bullet = ShipBullet(ai_settings, screen, ship, ship_type, ship.rect.centerx, ship.rect.top, boosted=True)
+        center_bullet = ShipBullet(ai_settings, screen, ship, ship_type, boosted=True)
         new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type)
         explosions.add(new_small_explosions)
-        right_bullet = ShipBullet(ai_settings, screen, ship, ship_type, ship.rect.right - 2, ship.rect.top + 20)
+        right_bullet = ShipBullet(ai_settings, screen, ship, ship_type, right=True)
         right_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, right=True)
         explosions.add(right_small_explosions)
         bullets.add(left_bullet)
-        bullets.add(middle_bullet)
+        bullets.add(center_bullet)
         bullets.add(right_bullet)
 
 
