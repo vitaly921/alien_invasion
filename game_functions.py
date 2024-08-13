@@ -41,12 +41,14 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
 def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb, pause, pause_button,
                          hint_for_pause_button, air_bombs, explosions, ship_type):
     """Реагирует на нажатие клавиш"""
+    # Обработка нажатия Escape
     if event.key == pygame.K_ESCAPE:
-        # запись в файл обновленного значения рекорда
-        with open('record.txt', 'w') as f:
-            f.write(str(stats.high_score))
+        # вызов функции для сохранения рекорда игры
+        save_record(stats)
         # закрытие окна программы
         sys.exit()
+
+    # обработка нажатия стрелок (вверх, низ, лево, право)
     elif event.key == pygame.K_RIGHT and stats.game_active:
         ship.moving_right = True
     elif event.key == pygame.K_LEFT and stats.game_active:
@@ -55,16 +57,19 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
         ship.moving_up = True
     elif event.key == pygame.K_DOWN and stats.game_active:
         ship.moving_down = True
+
+    # обработка нажатия Space
     elif event.key == pygame.K_SPACE:
         # вызов функции открытия огня по противнику
         fire_bullet(ai_settings, screen, ship, bullets, stats, explosions, ship_type)
-    elif event.key == pygame.K_RSHIFT:
+    # обработка нажатия клавиш Shift
+    elif event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
         # вызов функции для сброса авиабомб
         drop_air_bomb(ai_settings, screen, ship, air_bombs, stats)
-        # обработка нажатия клавиши "Enter" во время неактивной игры
-    elif event.key == pygame.K_RETURN and not stats.game_active:
+        # обработка нажатия клавиш "Enter" во время неактивной игры
+    elif (event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER) and not stats.game_active:
         # вызов функции для начала игры
-        start_game(stats, aliens, bullets, ai_settings, screen, ship, sb)
+        start_game(stats, aliens, ai_settings, screen, ship, sb)
     # обработка нажатия клавиши "p" во время активной игры
     elif event.key == pygame.K_p and stats.game_active:
         # вызов функции для задания паузы игры
@@ -72,7 +77,7 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
 
 
 def check_keyup_events(event, ship):
-    """Реагирует на отпускание клавиш"""
+    """Реагирует на отпускание клавиш стрелок"""
     if event.key == pygame.K_RIGHT:
         ship.moving_right = False
     elif event.key == pygame.K_LEFT:
@@ -126,7 +131,7 @@ def check_play_button(stats, play_button, mouse_x, mouse_y, ship, aliens, bullet
     # пользователя в главном меню
     if button_clicked and not stats.game_active and not stats.press_about_it_button:
         # вызов функции настройки игровых элементов при старте
-        start_game(stats, aliens, bullets, ai_settings, screen, ship, sb)
+        start_game(stats, aliens, ai_settings, screen, ship, sb)
 
 
 def check_about_it_button(mouse_x, mouse_y, about_it_button, stats):
@@ -166,6 +171,13 @@ def reset_moving_flags_ship(ship):
     ship.moving_right = False
     ship.moving_up = False
     ship.moving_down = False
+
+
+def save_record(stats):
+    """Сохранение рекорда игры"""
+    # запись в файл обновленного значения рекорда
+    with open('record.txt', 'w') as f:
+        f.write(str(stats.high_score))
 
 
 def pause_game(ai_settings, ship, stats, pause, pause_button, hint_for_pause_button):
@@ -216,19 +228,19 @@ def check_events_for_pause(ai_settings, stats, pause_button, pause):
 def check_keydown_events_for_pause(event, stats, pause):
     """Функция обработки событий нажатия клавиш в режиме паузы с возвратом состояния паузы"""
     # обработка нажатия клавиш "Enter" или "Space"
-    if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+    if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE or event.key == pygame.K_KP_ENTER:
         # флаг паузы переходит в состояние false, что приводит к выходу из цикла и окончанию паузы
         pause = False
         # скрытие курсора мыши
         pygame.mouse.set_visible(False)
         # переход игры в активное состояние
         stats.game_active = True
-    # случай нажатия клавиши "Esc"
+    # случай нажатия клавиши Escape
     elif event.key == pygame.K_ESCAPE:
         # выход из игры
         pygame.quit()
         quit()
-    # обработка нажатия клавиши "Backspace"
+    # обработка нажатия клавиши Backspace
     elif event.key == pygame.K_BACKSPACE:
         # флаг паузы переход в состояние False
         pause = False
@@ -254,7 +266,7 @@ def check_mouse_button_down_for_pause(stats, pause, pause_button):
     return pause
 
 
-def start_game(stats, aliens, bullets, ai_settings, screen, ship, sb):
+def start_game(stats, aliens, ai_settings, screen, ship, sb):
     """Функция настройки игровых элементов при старте игры"""
     # сброс скоростей игровых элементов
     ai_settings.initialize_dynamic_settings()
@@ -266,9 +278,8 @@ def start_game(stats, aliens, bullets, ai_settings, screen, ship, sb):
     sb.prep_images()
     # переход игры в активный режим
     stats.game_active = True
-    # создание нового флота пришельцев и перемещение корабля игрока в начальное положение
+    # создание нового флота пришельцев
     create_fleet(ai_settings, screen, ship, aliens, stats)
-    #ship.center_ship()
 
 
 def create_gradient(width, height):
@@ -289,7 +300,8 @@ def create_gradient(width, height):
 
 
 def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button, game_title,
-                  sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs, alien_bullets):
+                  sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs,
+                  alien_bullets):
     """Обновляет экран и показывает всё содержимоё на нём"""
     # вариант заполнения экрана сплошным цветом фона
     # screen.fill(ai_settings.bg_color)
@@ -299,38 +311,29 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     gradient_surface = gradient_surface.convert()
     # отрисовка поверхности градиента как цвета фона
     screen.blit(gradient_surface, (0, 0))
-
     # отрисовка группы звезд
     stars.draw(screen)
 
-    # поочередная отрисовка пуль
+    # поочередная отрисовка пуль корабля игрока
     for bullet in bullets.sprites():
         bullet.draw_bullet()
     # поочередная отрисовка авиабомб
     for air_bomb in air_bombs.sprites():
         air_bomb.draw_air_bomb()
-
+    # поочередная отрисовка пуль корабля пришельца
     for bullet in alien_bullets.sprites():
         bullet.draw_bullet()
 
     # отрисовка корабля игрока и группы пришельцев
     ship.blitme()
-    aliens.draw(screen)
-
-    # отрисовка взрывов
-    explosions.draw(screen)
+    #aliens.draw(screen)
     # отображение рекорда
     sb.show_high_score()
+    # отрисовка взрывов
+    #explosions.draw(screen)
 
     # действия во время неактивной игры
     if not stats.game_active:
-        # задание расположения корабля по центру
-        #ship.center_ship()
-        # очистка групп пришельцев, пуль, взрывов
-        aliens.empty()
-        #bullets.empty()
-        #air_bombs.empty()
-        #explosions.empty()
         # действия во время неактивной игры при переходе в меню описания
         if stats.press_about_it_button:
             # текст описания игры
@@ -339,18 +342,30 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
             back_button.draw_button()
         # действия во время неактивной игры при отсутствии перехода в меню описания
         else:
+            # очистка групп пришельцев, пуль, взрывов
+            aliens.empty()
+            bullets.empty()
+            alien_bullets.empty()
+            air_bombs.empty()
+            explosions.empty()
+            ship.center_ship()
             # отрисовка заглавия игры
             game_title.blitme()
+
             # отрисовка кнопок Play, About It, Exit
             play_button.draw_button()
             exit_button.draw_button()
             about_it_button.draw_button()
             # отрисовка подсказки для начала игры
             hint_for_play_button.blitme()
+
     # действия во время активной игры
     else:
         # отображение текущего счёта, уровня и доступных кораблей для игры
         sb.show_score()
+        # отрисовка взрывов
+        explosions.draw(screen)
+        aliens.draw(screen)
 
     # обновление окна
     pygame.display.flip()
@@ -469,7 +484,7 @@ def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bull
         for shooting_alien in shooting_aliens:
             # создание пули для с параметрами для пришельца
             new_alien_bullet = AlienBullet(ai_settings, screen, shooting_alien)
-            small_explosion = SmallExplosion(ai_settings, screen, shooting_alien, ship_type=0, for_alien=True)
+            small_explosion = SmallExplosion(ai_settings, screen, shooting_alien, ship_type=0, shot_location=None, for_alien=True)
             # добавление новой пули в группу пуль пришельцев
             alien_bullets.add(new_alien_bullet)
             explosions.add(small_explosion)
@@ -516,7 +531,6 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_b
     # задание временной паузы
     sleep(1.5)
     # очистка списка оставшихся пуль и авиабомб
-    aliens.empty()
     bullets.empty()
     air_bombs.empty()
     explosions.empty()
@@ -611,41 +625,43 @@ def create_ships(ai_settings, screen, ships):
 
 def fire_bullet(ai_settings, screen, ship, bullets, stats, explosions, ship_type):
     """Позволяет совершить выстрел если максимум пуль еще не достигнут"""
-    #print('Огонь ведет ' + str(ship_type+1) + ' корабль')
     # если текущий корабль первый
     if ship_type == 0:
-        # если кол-во пуль меньше максимально допустимого значения и игра в активном состоянии
-        if len(bullets) < ai_settings.bullets_allowed and stats.game_active:
-            # создание новой пули
-            new_bullet = ShipBullet(ai_settings, screen, ship, ship_type, ship.rect.centerx, ship.rect.top)
-            # создание эффекта выстрела при выстреле
-            new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type)
-            # добавление эффекта выстрела в группу взрывов
-            explosions.add(new_small_explosions)
-            # добавление пули в группу пуль
-            bullets.add(new_bullet)
+        # если кол-во пуль меньше максимально допустимого значения для первого корабля и игра в активном состоянии
+        if len(bullets) < ai_settings.bullets_allowed_for_first_ship and stats.game_active:
+            # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
+            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions)
+
+    # если текущий корабль второй
     elif ship_type == 1:
-        left_bullet = ShipBullet(ai_settings, screen, ship, ship_type, left=True)
-        left_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, left=True)
-        explosions.add(left_small_explosions)
-        right_bullet = ShipBullet(ai_settings, screen, ship, ship_type, right=True)
-        right_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, right=True)
-        explosions.add(right_small_explosions)
-        bullets.add(left_bullet)
-        bullets.add(right_bullet)
+        # если кол-во пуль меньше максимально допустимого значения для второго корабля и игра в активном состоянии
+        if len(bullets) < ai_settings.bullets_allowed_for_second_ship and stats.game_active:
+            # вызов функции для создания эффекта выстрела в левой части корабля
+            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left')
+            # вызов функции для создания эффекта выстрела в правой части корабля
+            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
+
+    # если текущий корабль третий
     elif ship_type == 2:
-        left_bullet = ShipBullet(ai_settings, screen, ship, ship_type, left=True)
-        left_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, left=True)
-        explosions.add(left_small_explosions)
-        center_bullet = ShipBullet(ai_settings, screen, ship, ship_type, boosted=True)
-        new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type)
-        explosions.add(new_small_explosions)
-        right_bullet = ShipBullet(ai_settings, screen, ship, ship_type, right=True)
-        right_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, right=True)
-        explosions.add(right_small_explosions)
-        bullets.add(left_bullet)
-        bullets.add(center_bullet)
-        bullets.add(right_bullet)
+        # если кол-во пуль меньше максимально допустимого значения для третьего корабля и игра в активном состоянии
+        if len(bullets) < ai_settings.bullets_allowed_for_third_ship and stats.game_active:
+            # вызов функции для создания эффекта выстрела в левой части корабля
+            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left')
+            # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
+            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, boosted=True)
+            # вызов функции для создания эффекта выстрела в правой части корабля
+            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
+
+
+def create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='center', boosted=False):
+    """Создание эффекта выстрела в заданном месте корабля"""
+    # создание новой пули корабля в заданном месте
+    new_bullet = ShipBullet(ai_settings, screen, ship, ship_type, shot_location, boosted)
+    # создание эффекта выстрела в заданном месте
+    new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, shot_location)
+    # добавление пули и эффекта выстрела в группы
+    explosions.add(new_small_explosions)
+    bullets.add(new_bullet)
 
 
 def drop_air_bomb(ai_settings, screen, ship, air_bombs, stats):

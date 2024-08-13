@@ -40,7 +40,9 @@ class Settings:
         self.bullet_color_for_ship = (222, 164, 109)
         self.boosted_bullet_color_for_ship = (255, 0, 0)
         self.bullet_color_for_alien = (255, 55, 0)
-        self.bullets_allowed = 4
+        self.bullets_allowed_for_first_ship = 4
+        self.bullets_allowed_for_second_ship = 6
+        self.bullets_allowed_for_third_ship =6
         self.bullet_score = 500
 
         # параметры авиабомбы
@@ -100,7 +102,7 @@ class Settings:
     def increase_speed(self):
         """Увеличение значений скорости игровых объектов"""
         self.ship_speed_factor *= self.speedup_scale
-        self.bullet_speed_factor *= self.speedup_scale
+        self.ship_bullet_speed_factor *= self.speedup_scale
         self.alien_speed_factor *= self.speedup_scale
         self.alien_points *= self.score_scale
         self.count_boosted_aliens += 2

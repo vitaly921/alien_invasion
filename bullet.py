@@ -21,7 +21,7 @@ class Bullet(Sprite):
 
 class ShipBullet(Bullet):
     """Класс для управления пулями корабля игрока"""
-    def __init__(self, ai_settings, screen, ship, ship_type, left=False, right=False, center=False, boosted=False):
+    def __init__(self, ai_settings, screen, ship, ship_type, shot_location, boosted=False):
         # передача аргументов родительскому классу
         super().__init__(ai_settings, screen, ship)
         # инициализация дополнительных аргументов: цвета пули, флага для усиленной пули, корабля игрока и его номера
@@ -34,22 +34,22 @@ class ShipBullet(Bullet):
         self.rect = pygame.Rect(0, 0, ai_settings.bullet_width_for_ship, ai_settings.bullet_height_for_ship)
 
         # задание координат пули относительно корабля игрока на основе его типа и переданных флагов
-        if self.ship_type == 0:
+        if self.ship_type == 0 and shot_location == 'center':
             self.rect.centerx = self.ship.rect.centerx
             self.rect.top = self.ship.rect.top
-        elif self.ship_type == 1 and left:
+        elif self.ship_type == 1 and shot_location == 'left':
             self.rect.centerx = self.ship.rect.left+22
             self.rect.top = self.ship.rect.top+20
-        elif self.ship_type == 1 and right:
+        elif self.ship_type == 1 and shot_location == 'right':
             self.rect.centerx = self.ship.rect.right-22
             self.rect.top = self.ship.rect.top+20
-        elif self.ship_type == 2 and left:
+        elif self.ship_type == 2 and shot_location == 'left':
             self.rect.centerx = self.ship.rect.left + 2
             self.rect.top = self.ship.rect.top + 20
-        elif self.ship_type == 2 and right:
+        elif self.ship_type == 2 and shot_location == 'right':
             self.rect.centerx = self.ship.rect.right - 2
             self.rect.top = self.ship.rect.top + 20
-        elif self.ship_type == 2 and not left and not right:
+        elif self.ship_type == 2 and shot_location == 'center':
             self.rect.centerx = self.ship.rect.centerx
             self.rect.top = self. ship.rect.top
 
