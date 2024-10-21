@@ -520,28 +520,10 @@ def check_location_ship(ship, aliens):
 
 def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bullets, stats, explosions):
     """Обновление позиций и кол-ва пуль пришельцев"""
-    # фиксация текущего момента времени
-    current_time = time()
-    # если разница между зафиксированным временем и временем последнего выстрела больше 3 сек
-    if current_time - last_shot_time > 3:
-        # время последнего выстрела равно фиксированному текущему времени
-        last_shot_time = current_time
-        # подсчет кол-ва одновременно стреляющих кораблей с учетом текущего уровня игры
-        num_shooting_aliens = (stats.level // 2) + 1
-        # уточнение кол-ва стреляющих кораблей с учётом их уничтожения игроком
-        # (кол-во стреляющих кораблей не может быть больше оставшихся кораблей)
-        num_shooting_aliens = min(num_shooting_aliens, len(aliens))
-        # случайный выбор нужного кол-ва уникальных пришельцев из группы
-        shooting_aliens = random.sample(aliens.sprites(), num_shooting_aliens)
+    # вызов функции для выбора стреляющих кораблей пришельцев каждые n-секунд из оставшейся группы
+    last_shot_time = choice_shooting_aliens(ai_settings, screen, stats, last_shot_time, aliens, alien_bullets, explosions)
 
-        # для каждого стреляющего корабля из уникальной выборки
-        for shooting_alien in shooting_aliens:
-            # создание пули для с параметрами для пришельца
-            new_alien_bullet = AlienBullet(ai_settings, screen, shooting_alien)
-            small_explosion = SmallExplosion(ai_settings, screen, shooting_alien, ship_type=0, shot_location=None, for_alien=True)
-            # добавление новой пули в группу пуль пришельцев
-            alien_bullets.add(new_alien_bullet)
-            explosions.add(small_explosion)
+    #create_alien_bullets_and_small_explosions(ai_settings, screen, shooting_aliens, alien_bullets, explosions)
 
     # обновление позиций пуль пришельцев
     alien_bullets.update()
@@ -556,6 +538,41 @@ def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bull
     pygame.display.flip()
     # возвращение времени последнего выстрела
     return last_shot_time
+
+
+def choice_shooting_aliens(ai_settings, screen, stats, last_shot_time, aliens, alien_bullets, explosions):
+    """Выбор стреляющих кораблей каждые n-секунд"""
+    # фиксация текущего момента времени
+    current_time = time()
+    # если разница между зафиксированным временем и временем последнего выстрела больше 3 сек
+    if current_time - last_shot_time > 3:
+        # время последнего выстрела равно фиксированному текущему времени
+        last_shot_time = current_time
+        # подсчет кол-ва одновременно стреляющих кораблей с учетом текущего уровня игры
+        num_shooting_aliens = (stats.level // 2) + 1
+        # уточнение кол-ва стреляющих кораблей с учётом их уничтожения игроком
+        # (кол-во стреляющих кораблей не может быть больше оставшихся кораблей)
+        num_shooting_aliens = min(num_shooting_aliens, len(aliens))
+        # случайный выбор нужного кол-ва уникальных пришельцев из группы
+        shooting_aliens = random.sample(aliens.sprites(), num_shooting_aliens)
+
+        # создание пуль пришельцев
+        create_alien_bullets_and_small_explosions(ai_settings, screen, shooting_aliens, alien_bullets, explosions)
+    return last_shot_time
+
+def create_alien_bullets_and_small_explosions(ai_settings, screen, shooting_aliens, alien_bullets, explosions):
+    """Функция для создания пуль пришельцев"""
+    # для каждого стреляющего корабля из уникальной выборки
+    for shooting_alien in shooting_aliens:
+        # создание пули для с параметрами для пришельца
+        new_alien_bullet = AlienBullet(ai_settings, screen, shooting_alien)
+        # создание мини взрыва в месте возникновения пули
+        small_explosion = SmallExplosion(ai_settings, screen, shooting_alien, ship_type=0, shot_location=None,
+                                         for_alien=True)
+        # добавление новой пули в группу пуль пришельцев
+        alien_bullets.add(new_alien_bullet)
+        # добавление мини взрыва в группу взрывов
+        explosions.add(small_explosion)
 
 
 def check_alien_bullet_ship_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions, air_bombs):
