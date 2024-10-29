@@ -1,5 +1,5 @@
 import pygame
-from pygame.sprite import Sprite
+from pygame._sprite import Sprite
 
 
 class Alien(Sprite):

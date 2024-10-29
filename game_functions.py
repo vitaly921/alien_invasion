@@ -172,6 +172,140 @@ def save_record(stats):
         f.write(str(stats.high_score))
 
 
+def fire_bullet(ai_settings, screen, ship, bullets, stats, explosions, ship_type):
+    """Позволяет совершить выстрел если максимум пуль еще не достигнут"""
+    # если текущий корабль первый
+    if ship_type == 0:
+        # если кол-во пуль меньше максимально допустимого значения для первого корабля и игра в активном состоянии
+        if len(bullets) < ai_settings.bullets_allowed_for_first_ship and stats.game_active:
+            # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions)
+
+    # если текущий корабль второй
+    elif ship_type == 1:
+        # если кол-во пуль меньше максимально допустимого значения для второго корабля и игра в активном состоянии
+        if len(bullets) < ai_settings.bullets_allowed_for_second_ship and stats.game_active:
+            # вызов функции для создания эффекта выстрела в левой части корабля
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left')
+            # вызов функции для создания эффекта выстрела в правой части корабля
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
+
+    # если текущий корабль третий
+    elif ship_type == 2:
+        # если кол-во пуль меньше максимально допустимого значения для третьего корабля и игра в активном состоянии
+        if len(bullets) < ai_settings.bullets_allowed_for_third_ship and stats.game_active:
+            # вызов функции для создания эффекта выстрела в левой части корабля
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left')
+            # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, boosted=True)
+            # вызов функции для создания эффекта выстрела в правой части корабля
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
+
+
+def create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='center', boosted=False):
+    """Создание эффекта выстрела в заданном месте корабля"""
+    # создание новой пули корабля в заданном месте
+    new_bullet = ShipBullet(ai_settings, screen, ship, ship_type, shot_location, boosted)
+    # создание эффекта выстрела в заданном месте
+    new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, shot_location)
+    # добавление пули и эффекта выстрела в группы
+    explosions.add(new_small_explosions)
+    bullets.add(new_bullet)
+
+
+def drop_air_bomb(ai_settings, screen, ship, air_bombs, stats):
+    """Функция для создания авиабомб"""
+    # если во время игры бомба на экране отсутствует
+    if len(air_bombs) < ai_settings.air_bombs_allowed and stats.game_active:
+        # создание экземпляра новой бомбы
+        new_air_bomb = AirBomb(ai_settings, screen, ship)
+        # добавление бомбы в список
+        air_bombs.add(new_air_bomb)
+
+
+def start_game(stats, aliens, ai_settings, screen, ship, sb):
+    """Функция настройки игровых элементов при старте игры"""
+    # сброс скоростей игровых элементов
+    ai_settings.initialize_dynamic_settings()
+    # сброс флагов движения корабля
+    reset_moving_flags_ship(ship)
+    # скрытие курсора мыши
+    pygame.mouse.set_visible(False)
+    # вызов функции для отрисовки статистических данных (счет, рекорд, уровень, оставшиеся корабли) в виде изображений
+    sb.prep_images()
+    # переход игры в активный режим
+    stats.game_active = True
+    # создание нового флота пришельцев
+    create_fleet(ai_settings, screen, ship, aliens, stats)
+
+
+def get_number_aliens_x(ai_settings, alien_width):
+    """Вычисление количества пришельцев в ряду"""
+    # определение доступного пространства по Х: ширина экрана - (коэфф.*ширина корабля пришельца)
+    available_space_x = ai_settings.screen_width - 5 * alien_width
+    # целое число пришельцев в ряду: пространство по Х / (ширина пришельца * доп. пространство его ширины) - переменная
+    number_aliens_x = int(available_space_x / (1.5 * alien_width)-1)
+    return number_aliens_x
+
+
+def get_number_rows_aliens(ai_settings, ship_height, alien_height):
+    """Вычисление количества рядов пришельцев на экране"""
+    # вычисление доступного пространства по Y: высота экрана - (коэфф.*высоту пришельца) - высота корабля игрока
+    available_space_y = ai_settings.screen_height - (8 * alien_height) - ship_height
+    # целое количество рядов: пространство по Y / (коэфф.*высоту пришельца)
+    number_rows = int(available_space_y / (1.5 * alien_height))
+    return number_rows
+
+
+def create_alien(ai_settings, screen, aliens, alien_number, row_number, boosted=False):
+    """Создание пришельца в ряду"""
+    if boosted:
+        alien = BoostedAlien(ai_settings, screen)
+    else:
+        # создание нового экземпляра пришельца для его отображения
+        alien = Alien(ai_settings, screen)
+
+    # вычисление ширины и высоты пришельца
+    alien_width = alien.rect.width
+    alien_height = alien.rect.height
+    # задание координаты Х пришельца:
+    # координата по Х: половина ширины пришельца + доп.пространство (коэфф.)*ширина пришельца * номер в ряду
+    alien.x = alien_width / 2 + 1.5 * alien_width * alien_number
+    alien.rect.x = alien.x
+    # координата по Y: половина высоты пришельца + доп.пространство (коэфф.)*высоту пришельца * номер ряда
+    alien.y = alien_height/2 + 1.5 * alien_height * row_number
+    alien.rect.y = alien.y
+    # добавление созданного пришельца в группу
+    aliens.add(alien)
+
+
+def create_fleet(ai_settings, screen, ship, aliens, stats):
+    """Создание флота пришельцев"""
+    # создание экземпляра пришельца для вычисления его ширины и высоты
+    alien = Alien(ai_settings, screen)
+    # вычисление количества пришельцев в ряду
+    number_aliens_x = get_number_aliens_x(ai_settings, alien.rect.width)
+    # вычисление количества рядов пришельцев
+    number_rows_aliens = get_number_rows_aliens(ai_settings, ship.rect.height, alien.rect.height)
+
+    # задание кол-ва "усиленных пришельцев"
+    count_boosted_aliens = ai_settings.count_boosted_aliens
+    # случайный выбор индексов для "усиленных" пришельцев
+    index_boosted_aliens = random.sample(range(number_aliens_x*number_rows_aliens), count_boosted_aliens)
+
+    # для каждого ряда из списка доступных
+    for row_number in range(number_rows_aliens):
+        # для каждого пришельца в ряду
+        for alien_number in range(number_aliens_x):
+            # если индекс пришельца входит в список индексов для "усиленных" пришельцев
+            if (row_number * number_aliens_x + alien_number) in index_boosted_aliens:
+                # создание "усиленного" пришельца в ряду
+                create_alien(ai_settings, screen, aliens, alien_number, row_number, boosted=True)
+            else:
+                # создание базового пришельца в ряду
+                create_alien(ai_settings, screen, aliens, alien_number, row_number)
+
+
 def pause_game(ai_settings, ship, stats, pause, pause_button, hint_for_pause_button):
     """Обработка паузы в игре"""
     # флаг паузы переходит в значение True
@@ -268,21 +402,6 @@ def exit_from_pause_to_active_game(pause, stats):
     stats.game_active = True
     return pause
 
-
-def start_game(stats, aliens, ai_settings, screen, ship, sb):
-    """Функция настройки игровых элементов при старте игры"""
-    # сброс скоростей игровых элементов
-    ai_settings.initialize_dynamic_settings()
-    # сброс флагов движения корабля
-    reset_moving_flags_ship(ship)
-    # скрытие курсора мыши
-    pygame.mouse.set_visible(False)
-    # вызов функции для отрисовки статистических данных (счет, рекорд, уровень, оставшиеся корабли) в виде изображений
-    sb.prep_images()
-    # переход игры в активный режим
-    stats.game_active = True
-    # создание нового флота пришельцев
-    create_fleet(ai_settings, screen, ship, aliens, stats)
 
 
 def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button, game_title,
@@ -460,6 +579,44 @@ def handle_collision(collisions, ai_settings, screen, explosions, stats, sb, ali
         update_score(ai_settings, stats, aliens, sb)
 
 
+def create_explosion(explosions, ai_settings, screen, game_ship, for_alien=False):
+    """Функция создания эффекта взрыва для корабля игрока/пришельца"""
+    # создание экземпляра взрыва по координатам пришельца
+    if for_alien:
+        explosion = Explosion(ai_settings, screen, game_ship, for_alien=True)
+    # создание экземпляра взрыва по координатам корабля игрока
+    else:
+        explosion = Explosion(ai_settings, screen, game_ship)
+    # добавление экземпляра в группу
+    explosions.add(explosion)
+
+
+def update_score(ai_settings, stats, aliens, sb, for_bullets=False):
+    """Функция для обновления счета игры и проверки рекорда"""
+    # для случая если флаг for_bullets активен
+    if for_bullets:
+        # фиксированное увеличение счета игры
+        stats.score += ai_settings.bullet_score
+    else:
+        # увеличение значения счёта, который учитывает все попадания одного снаряда
+        stats.score += ai_settings.alien_points * len(aliens)
+    # обновление словаря со значением счёта игры на текущем уровне
+    stats.score_dict[stats.level] = stats.score
+    # формирование изображения с текстом обновленного счёта
+    sb.prep_score()
+    # проверка достижения рекордного счёта
+    check_high_score(stats, sb)
+
+
+def check_high_score(stats, sb):
+    """Проверка достижения нового рекорда"""
+    if stats.score > int(stats.high_score):
+        # обновление рекорда
+        stats.high_score = stats.score
+        # формирование и вывод изображения с рекордом
+        sb.prep_high_score()
+
+
 def check_destroy_aliens(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs, explosions, alien_bullets,
                          bullets_aliens_collisions, air_bombs_aliens_collisions, boosted_bullets_aliens_collisions):
     """Функция для проверки полного уничтожения флота пришельцев и перехода на новый уровень игры"""
@@ -521,9 +678,12 @@ def check_location_ship(ship, aliens):
 def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bullets, stats, explosions):
     """Обновление позиций и кол-ва пуль пришельцев"""
     # вызов функции для выбора стреляющих кораблей пришельцев каждые n-секунд из оставшейся группы
-    last_shot_time = choice_shooting_aliens(ai_settings, screen, stats, last_shot_time, aliens, alien_bullets, explosions)
+    last_shot_time, shooting_aliens = choice_shooting_aliens(stats, last_shot_time, aliens)
 
-    #create_alien_bullets_and_small_explosions(ai_settings, screen, shooting_aliens, alien_bullets, explosions)
+    # если определены стреляющие корабли пришельцев
+    if shooting_aliens:
+        # создание пуль и эффекта выстрела для пришельцев
+        create_alien_bullets_and_small_explosions(ai_settings, screen, shooting_aliens, alien_bullets, explosions)
 
     # обновление позиций пуль пришельцев
     alien_bullets.update()
@@ -540,10 +700,11 @@ def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bull
     return last_shot_time
 
 
-def choice_shooting_aliens(ai_settings, screen, stats, last_shot_time, aliens, alien_bullets, explosions):
+def choice_shooting_aliens(stats, last_shot_time, aliens):
     """Выбор стреляющих кораблей каждые n-секунд"""
     # фиксация текущего момента времени
     current_time = time()
+    shooting_aliens=None
     # если разница между зафиксированным временем и временем последнего выстрела больше 3 сек
     if current_time - last_shot_time > 3:
         # время последнего выстрела равно фиксированному текущему времени
@@ -555,10 +716,9 @@ def choice_shooting_aliens(ai_settings, screen, stats, last_shot_time, aliens, a
         num_shooting_aliens = min(num_shooting_aliens, len(aliens))
         # случайный выбор нужного кол-ва уникальных пришельцев из группы
         shooting_aliens = random.sample(aliens.sprites(), num_shooting_aliens)
+    # возврат времени последнего выстрела и стреляющих кораблей
+    return last_shot_time, shooting_aliens
 
-        # создание пуль пришельцев
-        create_alien_bullets_and_small_explosions(ai_settings, screen, shooting_aliens, alien_bullets, explosions)
-    return last_shot_time
 
 def create_alien_bullets_and_small_explosions(ai_settings, screen, shooting_aliens, alien_bullets, explosions):
     """Функция для создания пуль пришельцев"""
@@ -573,59 +733,6 @@ def create_alien_bullets_and_small_explosions(ai_settings, screen, shooting_alie
         alien_bullets.add(new_alien_bullet)
         # добавление мини взрыва в группу взрывов
         explosions.add(small_explosion)
-
-
-def check_alien_bullet_ship_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions, air_bombs):
-    """Функция проверки и обработки попадания пули пришельца по кораблю"""
-    collide_alien_bullet = pygame.sprite.spritecollideany(ship, alien_bullets)
-
-    if collide_alien_bullet:
-        # сброс флагов движения корабля игрока в значение False
-        reset_moving_flags_ship(ship)
-        create_explosion(explosions, ai_settings, screen, ship)
-        last_explosion = explosions.sprites()[-1]
-        # отображение двух последних эффектов взрыва
-        last_explosion.blitme()
-        pygame.display.flip()
-        #
-        collide_alien_bullet.kill()
-        # задание паузы игры
-        sleep(1.5)
-        ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions, air_bombs)
-        return True
-
-
-
-
-
-
-def create_explosion(explosions, ai_settings, screen, game_ship, for_alien=False):
-    """Функция создания эффекта взрыва для корабля игрока/пришельца"""
-    # создание экземпляра взрыва по координатам пришельца
-    if for_alien:
-        explosion = Explosion(ai_settings, screen, game_ship, for_alien=True)
-    # создание экземпляра взрыва по координатам корабля игрока
-    else:
-        explosion = Explosion(ai_settings, screen, game_ship)
-    # добавление экземпляра в группу
-    explosions.add(explosion)
-
-
-def update_score(ai_settings, stats, aliens, sb, for_bullets=False):
-    """Функция для обновления счета игры и проверки рекорда"""
-    # для случая если флаг for_bullets активен
-    if for_bullets:
-        # фиксированное увеличение счета игры
-        stats.score += ai_settings.bullet_score
-    else:
-        # увеличение значения счёта, который учитывает все попадания одного снаряда
-        stats.score += ai_settings.alien_points * len(aliens)
-    # обновление словаря со значением счёта игры на текущем уровне
-    stats.score_dict[stats.level] = stats.score
-    # формирование изображения с текстом обновленного счёта
-    sb.prep_score()
-    # проверка достижения рекордного счёта
-    check_high_score(stats, sb)
 
 
 def update_explosions(ai_settings, explosions):
@@ -650,190 +757,13 @@ def update_explosions(ai_settings, explosions):
     explosions.update()
 
 
-def create_ships(ai_settings, screen, ships):
-    """Создание группы кораблей*"""
-    # создание экземпляров кораблей и добавление их в группу
-    for ship_number in range(ai_settings.ship_limit):
-        # создание экземпляра корабля
-        ship = Ship(ai_settings, screen, ship_number+1)
-        # добавление экземпляра в группу
-        ships.add(ship)
-    # возврат группы
-    return ships
-
-
-def fire_bullet(ai_settings, screen, ship, bullets, stats, explosions, ship_type):
-    """Позволяет совершить выстрел если максимум пуль еще не достигнут"""
-    # если текущий корабль первый
-    if ship_type == 0:
-        # если кол-во пуль меньше максимально допустимого значения для первого корабля и игра в активном состоянии
-        if len(bullets) < ai_settings.bullets_allowed_for_first_ship and stats.game_active:
-            # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
-            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions)
-
-    # если текущий корабль второй
-    elif ship_type == 1:
-        # если кол-во пуль меньше максимально допустимого значения для второго корабля и игра в активном состоянии
-        if len(bullets) < ai_settings.bullets_allowed_for_second_ship and stats.game_active:
-            # вызов функции для создания эффекта выстрела в левой части корабля
-            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left')
-            # вызов функции для создания эффекта выстрела в правой части корабля
-            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
-
-    # если текущий корабль третий
-    elif ship_type == 2:
-        # если кол-во пуль меньше максимально допустимого значения для третьего корабля и игра в активном состоянии
-        if len(bullets) < ai_settings.bullets_allowed_for_third_ship and stats.game_active:
-            # вызов функции для создания эффекта выстрела в левой части корабля
-            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left')
-            # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
-            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, boosted=True)
-            # вызов функции для создания эффекта выстрела в правой части корабля
-            create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
-
-
-def create_shot_effect(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='center', boosted=False):
-    """Создание эффекта выстрела в заданном месте корабля"""
-    # создание новой пули корабля в заданном месте
-    new_bullet = ShipBullet(ai_settings, screen, ship, ship_type, shot_location, boosted)
-    # создание эффекта выстрела в заданном месте
-    new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, shot_location)
-    # добавление пули и эффекта выстрела в группы
-    explosions.add(new_small_explosions)
-    bullets.add(new_bullet)
-
-
-def drop_air_bomb(ai_settings, screen, ship, air_bombs, stats):
-    """Функция для создания авиабомб"""
-    # если во время игры бомба на экране отсутствует
-    if len(air_bombs) < ai_settings.air_bombs_allowed and stats.game_active:
-        # создание экземпляра новой бомбы
-        new_air_bomb = AirBomb(ai_settings, screen, ship)
-        # добавление бомбы в список
-        air_bombs.add(new_air_bomb)
-
-
-def check_high_score(stats, sb):
-    """Проверка достижения нового рекорда"""
-    if stats.score > int(stats.high_score):
-        # обновление рекорда
-        stats.high_score = stats.score
-        # формирование и вывод изображения с рекордом
-        sb.prep_high_score()
-
-
-def get_number_aliens_x(ai_settings, alien_width):
-    """Вычисление количества пришельцев в ряду"""
-    # определение доступного пространства по Х: ширина экрана - (коэфф.*ширина корабля пришельца)
-    available_space_x = ai_settings.screen_width - 5 * alien_width
-    # целое число пришельцев в ряду: пространство по Х / (ширина пришельца * доп. пространство его ширины) - переменная
-    number_aliens_x = int(available_space_x / (1.5 * alien_width)-1)
-    return number_aliens_x
-
-
-def get_number_rows_aliens(ai_settings, ship_height, alien_height):
-    """Вычисление количества рядов пришельцев на экране"""
-    # вычисление доступного пространства по Y: высота экрана - (коэфф.*высоту пришельца) - высота корабля игрока
-    available_space_y = ai_settings.screen_height - (8 * alien_height) - ship_height
-    # целое количество рядов: пространство по Y / (коэфф.*высоту пришельца)
-    number_rows = int(available_space_y / (1.5 * alien_height))
-    return number_rows
-
-
-def create_alien(ai_settings, screen, aliens, alien_number, row_number, boosted=False):
-    """Создание пришельца в ряду"""
-    if boosted:
-        alien = BoostedAlien(ai_settings, screen)
-    else:
-        # создание нового экземпляра пришельца для его отображения
-        alien = Alien(ai_settings, screen)
-    # вычисление ширины и высоты пришельца
-    alien_width = alien.rect.width
-    alien_height = alien.rect.height
-    # задание координаты Х пришельца:
-    # координата по Х: половина ширины пришельца + доп.пространство (коэфф.)*ширина пришельца * номер в ряду
-    alien.x = alien_width / 2 + 1.5 * alien_width * alien_number
-    alien.rect.x = alien.x
-    # координата по Y: половина высоты пришельца + доп.пространство (коэфф.)*высоту пришельца * номер ряда
-    alien.y = alien_height/2 + 1.5 * alien_height * row_number
-    alien.rect.y = alien.y
-    # добавление созданного пришельца в группу
-    aliens.add(alien)
-
-
-def create_fleet(ai_settings, screen, ship, aliens, stats):
-    """Создание флота пришельцев"""
-    # создание экземпляра пришельца для вычисления его ширины и высоты
-    alien = Alien(ai_settings, screen)
-    # вычисление количества пришельцев в ряду
-    number_aliens_x = get_number_aliens_x(ai_settings, alien.rect.width)
-    # вычисление количества рядов пришельцев
-    number_rows_aliens = get_number_rows_aliens(ai_settings, ship.rect.height, alien.rect.height)
-
-    # задание кол-ва "усиленных пришельцев"
-    count_boosted_aliens = ai_settings.count_boosted_aliens
-    # случайный выбор индексов для "усиленных" пришельцев
-    index_boosted_aliens = random.sample(range(number_aliens_x*number_rows_aliens), count_boosted_aliens)
-    print(index_boosted_aliens)
-
-    # для каждого ряда из списка доступных
-    for row_number in range(number_rows_aliens):
-        # для каждого пришельца в ряду
-        for alien_number in range(number_aliens_x):
-            # если индекс пришельца входит в список индексов для "усиленных" пришельцев
-            if (row_number * number_aliens_x + alien_number) in index_boosted_aliens:
-                # создание "усиленного" пришельца в ряду
-                create_alien(ai_settings, screen, aliens, alien_number, row_number, boosted=True)
-            else:
-                # создание базового пришельца в ряду
-                create_alien(ai_settings, screen, aliens, alien_number, row_number)
-
-
-def get_number_stars_x(ai_settings, star_width):
-    """Вычисление кол-ва звёзд в ряду"""
-    # доступное пространство по Х: длина экрана - (коэфф.)*длину изобр. звезды
-    available_space_x = ai_settings.screen_width - 2 * star_width
-    # целое число звезд в ряду: пространство по X / (коэфф.*длину изобр. звезды)
-    number_stars_x = int(available_space_x / (1 * star_width))
-    return number_stars_x
-
-
-def get_number_rows_stars(ai_settings, star_height):
-    """Вычисление кол-ва рядов для звёзд"""
-    # доступное пространство по Y: ширина экрана - (коэфф.)*ширину изобр. звезды
-    available_space_y = ai_settings.screen_height - 2 * star_height
-    # целое число рядов: пространство по Y / (коэфф.)*ширину изобр. звезды
-    number_rows = int(available_space_y / (3 * star_height))
-    return number_rows
-
-
-def create_star(screen, stars, star_number, row_number):
-    """Создание звезды в ряду"""
-    star = Star(screen)
-    # координата звезды по X со случайным отклонением
-    star.x = randint(0, star.rect.width * 3) + randint(100, 250) * star_number
-    star.rect.x = star.x
-    # координата звезды по Y со случайным отклонением
-    star.y = randint(0, star.rect.height * 4) + randint(130, 200) * row_number
-    star.rect.y = star.y
-    # добавление звезды в группу
-    stars.add(star)
-
-
-def create_stars(ai_settings, screen, stars):
-    """Создание набора звёзд на экране"""
-    # создание экземпляра звезды для вычисления его параметров высоты и ширины
-    star = Star(screen)
-    # вычисление кол-ва звезд в ряду по Х
-    number_stars_x = get_number_stars_x(ai_settings, star.rect.width)
-    # вычисление рядов для звёзд по Y
-    number_rows_stars = get_number_rows_stars(ai_settings, star.rect.height)
-    # перебор рядов для звёзд
-    for row_number in range(number_rows_stars):
-        # создание ряда звёзд
-        for star_number in range(number_stars_x):
-            # создание звезды в ряду
-            create_star(screen, stars, star_number, row_number)
+def update_aliens(ai_settings, aliens):
+    """Обновление позиций всех пришельцев во флоте,
+     обработка достижения флотом левого/правого края экрана"""
+    # проверка достижения флотом левого/правого края экрана
+    check_fleet_edges(ai_settings, aliens)
+    # обновление позиции флота
+    aliens.update()
 
 
 def check_fleet_edges(ai_settings, aliens):
@@ -852,6 +782,54 @@ def change_fleet_direction(ai_settings, aliens):
         alien.rect.y += ai_settings.fleet_drop_speed
     # изменение флага направления
     ai_settings.fleet_direction *= -1
+
+
+def check_alien_bullet_ship_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions, air_bombs):
+    """Функция проверки и обработки попадания пули пришельца по кораблю"""
+    collide_alien_bullet = pygame.sprite.spritecollideany(ship, alien_bullets)
+
+    if collide_alien_bullet:
+        # сброс флагов движения корабля игрока в значение False
+        reset_moving_flags_ship(ship)
+        create_explosion(explosions, ai_settings, screen, ship)
+        last_explosion = explosions.sprites()[-1]
+        # отображение двух последних эффектов взрыва
+        last_explosion.blitme()
+        pygame.display.flip()
+        #
+        collide_alien_bullet.kill()
+        # задание паузы игры
+        sleep(1.5)
+        ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions, air_bombs)
+        return True
+
+
+
+def create_ships(ai_settings, screen, ships):
+    """Создание группы кораблей*"""
+    # создание экземпляров кораблей и добавление их в группу
+    for ship_number in range(ai_settings.ship_limit):
+        # создание экземпляра корабля
+        ship = Ship(ai_settings, screen, ship_number+1)
+        # добавление экземпляра в группу
+        ships.add(ship)
+    # возврат группы
+    return ships
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def ship_hit(ai_settings, stats, screen, ship, aliens, bullets, sb, alien_bullets, explosions, air_bombs, collision=True):
@@ -975,13 +953,51 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
     return number_ship, ship
 
 
-def update_aliens(ai_settings, aliens):
-    """Обновление позиций всех пришельцев во флоте,
-     обработка достижения флотом левого/правого края экрана"""
-    # проверка достижения флотом левого/правого края экрана
-    check_fleet_edges(ai_settings, aliens)
-    # обновление позиции флота
-    aliens.update()
+def get_number_stars_x(ai_settings, star_width):
+    """Вычисление кол-ва звёзд в ряду"""
+    # доступное пространство по Х: длина экрана - (коэфф.)*длину изобр. звезды
+    available_space_x = ai_settings.screen_width - 2 * star_width
+    # целое число звезд в ряду: пространство по X / (коэфф.*длину изобр. звезды)
+    number_stars_x = int(available_space_x / (1 * star_width))
+    return number_stars_x
+
+
+def get_number_rows_stars(ai_settings, star_height):
+    """Вычисление кол-ва рядов для звёзд"""
+    # доступное пространство по Y: ширина экрана - (коэфф.)*ширину изобр. звезды
+    available_space_y = ai_settings.screen_height - 2 * star_height
+    # целое число рядов: пространство по Y / (коэфф.)*ширину изобр. звезды
+    number_rows = int(available_space_y / (3 * star_height))
+    return number_rows
+
+
+def create_star(screen, stars, star_number, row_number):
+    """Создание звезды в ряду"""
+    star = Star(screen)
+    # координата звезды по X со случайным отклонением
+    star.x = randint(0, star.rect.width * 3) + randint(100, 250) * star_number
+    star.rect.x = star.x
+    # координата звезды по Y со случайным отклонением
+    star.y = randint(0, star.rect.height * 4) + randint(130, 200) * row_number
+    star.rect.y = star.y
+    # добавление звезды в группу
+    stars.add(star)
+
+
+def create_stars(ai_settings, screen, stars):
+    """Создание набора звёзд на экране"""
+    # создание экземпляра звезды для вычисления его параметров высоты и ширины
+    star = Star(screen)
+    # вычисление кол-ва звезд в ряду по Х
+    number_stars_x = get_number_stars_x(ai_settings, star.rect.width)
+    # вычисление рядов для звёзд по Y
+    number_rows_stars = get_number_rows_stars(ai_settings, star.rect.height)
+    # перебор рядов для звёзд
+    for row_number in range(number_rows_stars):
+        # создание ряда звёзд
+        for star_number in range(number_stars_x):
+            # создание звезды в ряду
+            create_star(screen, stars, star_number, row_number)
 
 
 def check_stars_edges(stars):
