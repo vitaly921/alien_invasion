@@ -23,6 +23,13 @@ def create_ships(ai_settings, screen, ships):
     # возврат группы
     return ships
 
+def play_music(music_path, loop=-1):
+    """Функция для проигрывания выбранной фоновой музыки"""
+    # загрузка нужной фоновой музыки (аргумент содержит путь)
+    pygame.mixer.music.load(music_path)
+    # проигрывание фоновой музыки с бесконечным повтором
+    pygame.mixer.music.play(loop)
+
 
 def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
                  sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions, ship_type):
@@ -243,6 +250,10 @@ def start_game(stats, aliens, ai_settings, screen, ship, sb):
     reset_moving_flags_ship(ship)
     # скрытие курсора мыши
     pygame.mouse.set_visible(False)
+    # остановка мелодии главного меню
+    pygame.mixer.music.stop()
+    # вызов функции для проигрывания фоновой музыки боя
+    play_music(ai_settings.battle_music)
     # вызов функции для отрисовки статистических данных (счет, рекорд, уровень, оставшиеся корабли) в виде изображений
     sb.prep_images()
     # переход игры в активный режим
@@ -324,6 +335,8 @@ def pause_game(ai_settings, ship, stats, pause, pause_button, hint_for_pause_but
     pause = not pause
     # сброс флагов движения корабля
     reset_moving_flags_ship(ship)
+    # постановка фоновой музыки боя на паузу
+    pygame.mixer.music.pause()
     # отображение курсора мыши
     pygame.mouse.set_visible(True)
     # отображение подсказки во время паузы
@@ -359,7 +372,7 @@ def check_events_for_pause(ai_settings, stats, pause_button, pause):
         # обработка события нажатия клавиш
         elif event.type == pygame.KEYDOWN:
             # вызов функции обработки событий нажатия клавиш в режиме паузы с возвратом состояния паузы
-            pause = check_keydown_events_for_pause(event, stats, pause)
+            pause = check_keydown_events_for_pause(ai_settings, event, stats, pause)
         # обработка события нажатия любой кнопки мыши
         elif event.type == pygame.MOUSEBUTTONDOWN:
             # вызов функции обработки событий нажатия кнопок мыши в режиме паузы с возвратом состояния паузы
@@ -371,7 +384,7 @@ def check_events_for_pause(ai_settings, stats, pause_button, pause):
     return pause
 
 
-def check_keydown_events_for_pause(event, stats, pause):
+def check_keydown_events_for_pause(ai_settings, event, stats, pause):
     """Функция обработки событий нажатия клавиш в режиме паузы с возвратом состояния паузы"""
     # обработка нажатия клавиш "Enter" или "Space"
     if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE or event.key == pygame.K_KP_ENTER:
@@ -386,6 +399,12 @@ def check_keydown_events_for_pause(event, stats, pause):
     elif event.key == pygame.K_BACKSPACE:
         # флаг паузы переход в состояние False
         pause = False
+        # остановка фоновой музыки для боя
+        pygame.mixer.music.stop()
+        # вызов функции для проигрывания фоновой музыки главного меню
+        play_music(ai_settings.main_menu_music)
+        # проигрывание музыки для главного меню
+        pygame.mixer.music.play()
         # сброс статистики
         stats.reset_stats()
     return pause
@@ -412,6 +431,8 @@ def exit_from_pause_to_active_game(pause, stats):
     pygame.mouse.set_visible(False)
     # переход игры в активное состояние
     stats.game_active = True
+    # снятие с паузы фоновой музыки боя
+    pygame.mixer.music.unpause()
     return pause
 
 
@@ -814,7 +835,7 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
         # задание паузы игры
         sleep(1.5)
         # вызов функции обработки уничтожения корабля
-        ship_hit(stats, ship, bullets, sb, alien_bullets, explosions, air_bombs)
+        ship_hit(ai_settings, stats, ship, bullets, sb, alien_bullets, explosions, air_bombs)
         # увеличение индекса корабля в группе
         number_ship += 1
     # если столкновение или достижение края экрана случилось и индекс корабля последний
@@ -823,10 +844,12 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
         if stats.game_active:
             # сброс флагов движения корабля игрока в значение False
             reset_moving_flags_ship(ship)
+            # остановка фоновой музыки для боя
+            pygame.mixer.music.stop()
             # задание паузы игры
             sleep(1.5)
             # вызов функции обработки уничтожения корабля
-            ship_hit(stats, ship, bullets, sb, alien_bullets, explosions, air_bombs)
+            ship_hit(ai_settings, stats, ship, bullets, sb, alien_bullets, explosions, air_bombs)
         # индекс списка кораблей игрока сбрасывается до нуля
         number_ship = 0
 
@@ -899,7 +922,7 @@ def check_alien_bullet_ship_collision(ai_settings, screen, ship, alien_bullets, 
         return True
 
 
-def ship_hit(stats, ship, bullets, sb, alien_bullets, explosions, air_bombs):
+def ship_hit(ai_settings, stats, ship, bullets, sb, alien_bullets, explosions, air_bombs):
     """Обработка столкновения корабля с флотом пришельцев / достижения флотом нижнего края экрана"""
     # для случая, если у игрока остались корабли (попытки игры)
     if stats.ship_left > 1:
@@ -918,6 +941,11 @@ def ship_hit(stats, ship, bullets, sb, alien_bullets, explosions, air_bombs):
         stats.reset_stats()
         # отображение курсора мыши
         pygame.mouse.set_visible(True)
+        # вызов функции для проигрывания фоновой музыки главного меню
+        play_music(ai_settings.main_menu_music)
+        # проигрывание музыки для главного меню
+        pygame.mixer.music.play()
+
     # очистка пуль корабля и пришельцев
     bullets.empty()
     alien_bullets.empty()

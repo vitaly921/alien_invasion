@@ -23,6 +23,14 @@ class Settings:
         # кол-во очков прочности "усиленного" пришельца
         self.allowed_count_hits = 4
 
+        # параметры звукового сопровождения
+        self.main_menu_music = 'sounds/main_menu.mp3'
+        self.battle_music = 'sounds/battle.mp3'
+        self.ship_shoot_sound = 'sounds/'
+        self.alien_shoot_sound = 'sounds/'
+        self.ship_aviabomb_sound = 'sounds/'
+        self.explosion_sound = 'sounds/'
+
         # параметры корабля игрока
         self.image_first_ship = 'images/ship1.png'
         self.image_second_ship = 'images/ship2.png'

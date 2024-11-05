@@ -67,9 +67,11 @@ def run_game():
     # создание группы звезд на экране
     gf.create_stars(ai_settings, screen, stars)
 
+    # проигрывание фоновой музыки главного меню
+    gf.play_music(ai_settings.main_menu_music)
+
     # состояние паузы
     pause = False
-
     last_shot_time = time()
     # основной цикл программы
     while True:
