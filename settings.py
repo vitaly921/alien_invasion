@@ -1,3 +1,6 @@
+import pygame.mixer
+
+
 class Settings:
     """Класс настроек игры"""
     def __init__(self):
@@ -26,10 +29,15 @@ class Settings:
         # параметры звукового сопровождения
         self.main_menu_music = 'sounds/main_menu.mp3'
         self.battle_music = 'sounds/battle.mp3'
-        self.ship_shoot_sound = 'sounds/'
-        self.alien_shoot_sound = 'sounds/'
-        self.ship_aviabomb_sound = 'sounds/'
-        self.explosion_sound = 'sounds/'
+        self.ship_shoot_sound = pygame.mixer.Sound('sounds/ship_shoot_sound.wav')
+        self.alien_shoot_sound = pygame.mixer.Sound('sounds/alien_shoot_sound.wav')
+        self.ship_aviabomb_sound = pygame.mixer.Sound('sounds/ship_aviabomb_sound.wav')
+        self.explosion_sound = pygame.mixer.Sound('sounds/explosion_sound.wav')
+        self.pause_sound = pygame.mixer.Sound('sounds/pause_sound.wav')
+        self.game_over_sound = pygame.mixer.Sound('sounds/game_over_sound.wav')
+        self.record_sound = pygame.mixer.Sound('sounds/record_sound.wav')
+        self.damage_alien_sound = pygame.mixer.Sound('sounds/damage_alien_sound.wav')
+        self.button_clicked_sound = pygame.mixer.Sound('sounds/button_clicked_sound.wav')
 
         # параметры корабля игрока
         self.image_first_ship = 'images/ship1.png'

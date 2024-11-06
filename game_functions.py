@@ -114,9 +114,9 @@ def check_mouse_button_down_events(stats, play_button, ship, aliens, bullets, ai
     mouse_x, mouse_y = pygame.mouse.get_pos()
     # проверка нажатия клавиш мыши в пределах кнопок Play, About It, Exit, Back
     check_play_button(stats, play_button, mouse_x, mouse_y, ship, aliens, bullets, ai_settings, screen, sb)
-    check_about_it_button(mouse_x, mouse_y, about_it_button, stats)
-    check_back_button(mouse_x, mouse_y, stats, back_button)
-    check_exit_button(mouse_x, mouse_y, stats, exit_button)
+    check_about_it_button(ai_settings, mouse_x, mouse_y, about_it_button, stats)
+    check_back_button(ai_settings, mouse_x, mouse_y, stats, back_button)
+    check_exit_button(ai_settings, mouse_x, mouse_y, stats, exit_button)
 
 
 def check_mouse_motion_events(ai_settings, event, play_button, about_it_button, exit_button, back_button):
@@ -149,37 +149,46 @@ def check_play_button(stats, play_button, mouse_x, mouse_y, ship, aliens, bullet
     # запуск новой игры при нажатии мыши на область кнопки Play, текущем неактивном состоянии игры и при нахождении
     # пользователя в главном меню
     if button_clicked and not stats.game_active and not stats.press_about_it_button:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
         # вызов функции настройки игровых элементов при старте
         start_game(stats, aliens, ai_settings, screen, ship, sb)
 
 
-def check_about_it_button(mouse_x, mouse_y, about_it_button, stats):
+def check_about_it_button(ai_settings, mouse_x, mouse_y, about_it_button, stats):
     """Проверка нажатия мышью кнопки About It"""
     # флаг нажатия кнопки мыши в пределах кнопки About It
     button_clicked = about_it_button.rect.collidepoint(mouse_x, mouse_y)
     # для случая если нажатие происходит в пределах области кнопки
     if button_clicked:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
         # переход игры в состояние, в котором отображается описание игры
         stats.press_about_it_button = True
 
 
-def check_back_button(mouse_x, mouse_y, stats, back_button):
+def check_back_button(ai_settings, mouse_x, mouse_y, stats, back_button):
     """Проверка нажатия мышью кнопки Back"""
     # флаг нажатия кнопки мыши в пределах кнопки Back
     button_clicked = back_button.rect.collidepoint(mouse_x, mouse_y)
     # для случая если нажатие происходит в пределах области кнопки
     if button_clicked:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
         # переход игры в главное меню
         stats.press_about_it_button = False
 
 
-def check_exit_button(mouse_x, mouse_y, stats, exit_button):
+def check_exit_button(ai_settings, mouse_x, mouse_y, stats, exit_button):
     """Проверка нажатия мышью кнопки Exit"""
     # флаг нажатия кнопки мыши в пределах кнопки Exit
     button_clicked = exit_button.rect.collidepoint(mouse_x, mouse_y)
     # для случая если нажатие происходит в пределах области кнопки и в главном меню игры
     if button_clicked and not stats.press_about_it_button:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
         # закрытие окна игры
+        sleep(0.3)
         pygame.quit()
         quit()
 
@@ -198,14 +207,14 @@ def fire_bullet(ai_settings, screen, ship, bullets, stats, explosions, ship_type
         # если кол-во пуль меньше максимально допустимого значения для первого корабля и игра в активном состоянии
         if len(bullets) < ai_settings.bullets_allowed_for_first_ship and stats.game_active:
             # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
-            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions)
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, play_sound=True)
 
     # если текущий корабль второй
     elif ship_type == 1:
         # если кол-во пуль меньше максимально допустимого значения для второго корабля и игра в активном состоянии
         if len(bullets) < ai_settings.bullets_allowed_for_second_ship and stats.game_active:
             # вызов функции для создания эффекта выстрела в левой части корабля
-            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left')
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left', play_sound=True)
             # вызов функции для создания эффекта выстрела в правой части корабля
             create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
 
@@ -216,17 +225,23 @@ def fire_bullet(ai_settings, screen, ship, bullets, stats, explosions, ship_type
             # вызов функции для создания эффекта выстрела в левой части корабля
             create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left')
             # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
-            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, boosted=True)
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, boosted=True, play_sound=True)
             # вызов функции для создания эффекта выстрела в правой части корабля
             create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
 
 
-def create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='center', boosted=False):
+def create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='center', boosted=False, play_sound=False):
     """Создание эффекта выстрела в заданном месте корабля"""
     # создание новой пули корабля в заданном месте
     new_bullet = ShipBullet(ai_settings, screen, ship, ship_type, shot_location, boosted)
     # создание эффекта выстрела в заданном месте
     new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, shot_location)
+    # проверка флага для единственного воспроизведения звука
+    if play_sound:
+        # настройка громкости звука
+        ai_settings.ship_shoot_sound.set_volume(0.25)
+        # воспроизведение звука
+        ai_settings.ship_shoot_sound.play()
     # добавление пули и эффекта выстрела в группы
     explosions.add(new_small_explosions)
     bullets.add(new_bullet)
@@ -240,6 +255,9 @@ def drop_air_bomb(ai_settings, screen, ship, air_bombs, stats):
         new_air_bomb = AirBomb(ai_settings, screen, ship)
         # добавление бомбы в список
         air_bombs.add(new_air_bomb)
+        # проигрывание звука падения авиабомбы и ргулировка громкости
+        ai_settings.ship_aviabomb_sound.set_volume(0.15)
+        ai_settings.ship_aviabomb_sound.play()
 
 
 def start_game(stats, aliens, ai_settings, screen, ship, sb):
@@ -341,6 +359,9 @@ def pause_game(ai_settings, ship, stats, pause, pause_button, hint_for_pause_but
     pygame.mouse.set_visible(True)
     # отображение подсказки во время паузы
     hint_for_pause_button.blitme()
+    # звук игры в режиме паузы и настройка громкости
+    ai_settings.pause_sound.set_volume(0.3)
+    ai_settings.pause_sound.play(-1)
     # основной цикл паузы
     while pause:
         # вызов функции обработки событий во время паузы с проверкой состояния флага паузы
@@ -376,7 +397,7 @@ def check_events_for_pause(ai_settings, stats, pause_button, pause):
         # обработка события нажатия любой кнопки мыши
         elif event.type == pygame.MOUSEBUTTONDOWN:
             # вызов функции обработки событий нажатия кнопок мыши в режиме паузы с возвратом состояния паузы
-            pause = check_mouse_button_down_for_pause(stats, pause, pause_button)
+            pause = check_mouse_button_down_for_pause(ai_settings, stats, pause, pause_button)
         # обработка события движения мыши
         elif event.type == pygame.MOUSEMOTION:
             # вызов функции для изменения цвета кнопки
@@ -390,6 +411,8 @@ def check_keydown_events_for_pause(ai_settings, event, stats, pause):
     if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE or event.key == pygame.K_KP_ENTER:
         # вызов функции окончания паузы
         pause = exit_from_pause_to_active_game(pause, stats)
+        # остановка проигрывания звука для паузы
+        ai_settings.pause_sound.stop()
     # случай нажатия клавиши Escape
     elif event.key == pygame.K_ESCAPE:
         # выход из игры
@@ -399,8 +422,12 @@ def check_keydown_events_for_pause(ai_settings, event, stats, pause):
     elif event.key == pygame.K_BACKSPACE:
         # флаг паузы переход в состояние False
         pause = False
+        # изменение флага для разрешения проигрывания мелодии достижения рекорда игры
+        stats.new_high_score_reached = False
         # остановка фоновой музыки для боя
         pygame.mixer.music.stop()
+        # остановка проигрывания звука для паузы
+        ai_settings.pause_sound.stop()
         # вызов функции для проигрывания фоновой музыки главного меню
         play_music(ai_settings.main_menu_music)
         # проигрывание музыки для главного меню
@@ -410,7 +437,7 @@ def check_keydown_events_for_pause(ai_settings, event, stats, pause):
     return pause
 
 
-def check_mouse_button_down_for_pause(stats, pause, pause_button):
+def check_mouse_button_down_for_pause(ai_settings, stats, pause, pause_button):
     """Функция обработки событий нажатия кнопок мыши в режиме паузы с возвратом состояния паузы"""
     # получение координат точки нажатия клавиши
     mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -418,8 +445,12 @@ def check_mouse_button_down_for_pause(stats, pause, pause_button):
     button_clicked = pause_button.rect.collidepoint(mouse_x, mouse_y)
     # для случая нажатия кнопки мыши в пределах области кнопки паузы
     if button_clicked:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
         # вызов функции окончания паузы
         pause = exit_from_pause_to_active_game(pause, stats)
+        # остановка проигрывания звука для паузы
+        ai_settings.pause_sound.stop()
     return pause
 
 
@@ -602,12 +633,17 @@ def handle_collision(collisions, ai_settings, screen, explosions, stats, sb, ali
             if isinstance(alien, BoostedAlien):
                 # уменьшение прочности "усиленного" корабля пришельца
                 alien.hit(ai_settings)
+                # проигрывание звука попадания по "усиленному" кораблю
+                ai_settings.damage_alien_sound.play()
             # для случая принадлежности пришельца к базовому классу
             else:
                 # удаление пришельца из группы
                 alien.kill()
             # вызов функции для создания эффекта взрыва конкретного корабля
             create_explosion(explosions, ai_settings, screen, alien, for_alien=True)
+            # проигрывание звука выстрела пришельца
+            ai_settings.explosion_sound.set_volume(0.5)
+            ai_settings.explosion_sound.play()
         # вызов функции для обновления счета игры и проверки рекорда
         update_score(ai_settings, stats, aliens, sb)
 
@@ -638,14 +674,22 @@ def update_score(ai_settings, stats, aliens, sb, for_bullets=False):
     # формирование изображения с текстом обновленного счёта
     sb.prep_score()
     # проверка достижения рекордного счёта
-    check_high_score(stats, sb)
+    check_high_score(ai_settings, stats, sb)
 
 
-def check_high_score(stats, sb):
+def check_high_score(ai_settings, stats, sb):
     """Проверка достижения нового рекорда"""
     if stats.score > int(stats.high_score):
         # обновление рекорда
         stats.high_score = stats.score
+        # проверка флага для одноразового проигрывания мелодии достижения рекорда
+        if not stats.new_high_score_reached:
+            # проигрывание мелодии достижения рекорда игры и настройка громкости
+            ai_settings.record_sound.set_volume(0.8)
+            ai_settings.record_sound.play()
+            # изменение флага для запрета дальнейшего проигрывания мелодии
+            stats.new_high_score_reached = True
+
         # формирование и вывод изображения с рекордом
         sb.prep_high_score()
 
@@ -767,6 +811,10 @@ def create_alien_bullets_and_small_explosions(ai_settings, screen, shooting_alie
         # добавление мини взрыва в группу взрывов
         explosions.add(small_explosion)
 
+    # проигрывание звука выстрела пришельца
+    ai_settings.alien_shoot_sound.set_volume(0.8)
+    ai_settings.alien_shoot_sound.play()
+
 
 def update_explosions(ai_settings, explosions):
     """Функция для обновления координат, продолжительности и прозрачности эффекта взрыва"""
@@ -846,8 +894,10 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
             reset_moving_flags_ship(ship)
             # остановка фоновой музыки для боя
             pygame.mixer.music.stop()
+            # проигрывание звука окончания игры
+            ai_settings.game_over_sound.play()
             # задание паузы игры
-            sleep(1.5)
+            sleep(3)
             # вызов функции обработки уничтожения корабля
             ship_hit(ai_settings, stats, ship, bullets, sb, alien_bullets, explosions, air_bombs)
         # индекс списка кораблей игрока сбрасывается до нуля
@@ -884,6 +934,8 @@ def show_ship_alien_explosion(explosions, ai_settings, screen, collide_alien, sh
     create_explosion(explosions, ai_settings, screen, ship)
     # сохранение двух последних эффектов в переменной
     last_two_explosions = explosions.sprites()[-2:]
+    # проигрывание звука столкновения кораблей
+    ai_settings.explosion_sound.play()
     # отображение двух последних эффектов взрыва
     for explosion in last_two_explosions:
         explosion.blitme()
@@ -914,6 +966,8 @@ def check_alien_bullet_ship_collision(ai_settings, screen, ship, alien_bullets, 
     if collide_alien_bullet:
         create_explosion(explosions, ai_settings, screen, ship)
         last_explosion = explosions.sprites()[-1]
+        # проигрывание звука столкновения кораблей
+        ai_settings.explosion_sound.play()
         # отображение двух последних эффектов взрыва
         last_explosion.blitme()
         pygame.display.flip()
@@ -937,6 +991,8 @@ def ship_hit(ai_settings, stats, ship, bullets, sb, alien_bullets, explosions, a
         #print('Кораблей не осталось')
         # переход игры в неактивное состояние
         stats.game_active = False
+        # изменение флага для разрешения проигрывания мелодии достижения рекорда игры
+        stats.new_high_score_reached = False
         # сброс статистики
         stats.reset_stats()
         # отображение курсора мыши
