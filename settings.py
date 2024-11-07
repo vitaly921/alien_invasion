@@ -38,6 +38,7 @@ class Settings:
         self.record_sound = pygame.mixer.Sound('sounds/record_sound.wav')
         self.damage_alien_sound = pygame.mixer.Sound('sounds/damage_alien_sound.wav')
         self.button_clicked_sound = pygame.mixer.Sound('sounds/button_clicked_sound.wav')
+        self.bullet_shot_bullet_sound = pygame.mixer.Sound('sounds/bullet_shot_bullet_sound.wav')
 
         # параметры корабля игрока
         self.image_first_ship = 'images/ship1.png'
@@ -45,6 +46,15 @@ class Settings:
         self.image_third_ship = 'images/ship3.png'
         self.ship_width = 80
         self.ship_height = 80
+        self.description_first_ship = '''
+        Самый слабый корабль игрока. Вам придется внимательно целиться чтобы попасть по врагу 
+        '''
+        self.description_second_ship = '''
+        Классический середнячок. Два снаряда вылетают по бокам и позволяют расправиться с врагом быстрее
+        '''
+        self.description_third_ship = '''
+        Отчаянный случай. Тройной залп с экспериментальным снарядом, который прошибает все на своём пути
+        '''
 
 
         # параметры пули (кроме скорости)

@@ -32,6 +32,7 @@ def run_game():
     stats = GameStats(ai_settings)
     sb = Scoreboard(ai_settings, screen, stats)
 
+
     # создание кнопки Play, Pause, About It
     play_button = Button(ai_settings, screen, 'Play', 1, 1.1)
     pause_button = Button(ai_settings, screen, 'Pause', 1, 1.25)
@@ -41,10 +42,6 @@ def run_game():
 
     # создание экземпляра надписи игры
     game_title = GameTitle(screen)
-
-    hint_for_play_button = Hint(ai_settings.hint_for_play_button, screen, 1, 0.9)
-    hint_for_pause_button = Hint(ai_settings.hint_for_pause_button, screen, 1, 1.5)
-    hint_for_about_it_button = Hint('Это игра про какую-то дич', screen, 1, 1)
 
     # создание группы для хранения пуль, кораблей игрока, флота пришельцев и звезд
     bullets = Group()
@@ -67,8 +64,14 @@ def run_game():
     # создание группы звезд на экране
     gf.create_stars(ai_settings, screen, stars)
 
+    hint_for_play_button = Hint(ai_settings.hint_for_play_button, screen, 1, 0.9)
+    hint_for_pause_button = Hint(ai_settings.hint_for_pause_button, screen, 1, 1.5)
+    hint_for_about_it_button = Hint('Это игра про какую-то дич', screen, 1, 1)
+    description_text_surfaces = gf.prepare_text_surfaces()
+    description_image_ships_surface = gf.prepare_images_ships_surface(ai_settings, ships)
+
     # проигрывание фоновой музыки главного меню
-    gf.play_music(ai_settings.main_menu_music)
+    gf.play_background_music(ai_settings.main_menu_music)
 
     # состояние паузы
     pause = False
@@ -96,7 +99,7 @@ def run_game():
         # обновления экрана
         gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button,
                          game_title, sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button,
-                         explosions, air_bombs, alien_bullets)
+                         explosions, air_bombs, alien_bullets, description_text_surfaces, description_image_ships_surface)
         #clock.tick(300)
 
 # запуск игры

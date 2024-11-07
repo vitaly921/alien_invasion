@@ -3,6 +3,9 @@ import sys
 import pygame
 from time import sleep, time
 from random import randint
+
+from Tools.demo.spreadsheet import center
+
 from bullet import Bullet, ShipBullet, AlienBullet
 from air_bomb import AirBomb
 from alien import Alien, BoostedAlien
@@ -23,7 +26,7 @@ def create_ships(ai_settings, screen, ships):
     # возврат группы
     return ships
 
-def play_music(music_path, loop=-1):
+def play_background_music(music_path, loop=-1):
     """Функция для проигрывания выбранной фоновой музыки"""
     # загрузка нужной фоновой музыки (аргумент содержит путь)
     pygame.mixer.music.load(music_path)
@@ -114,7 +117,7 @@ def check_mouse_button_down_events(stats, play_button, ship, aliens, bullets, ai
     mouse_x, mouse_y = pygame.mouse.get_pos()
     # проверка нажатия клавиш мыши в пределах кнопок Play, About It, Exit, Back
     check_play_button(stats, play_button, mouse_x, mouse_y, ship, aliens, bullets, ai_settings, screen, sb)
-    check_about_it_button(ai_settings, mouse_x, mouse_y, about_it_button, stats)
+    check_about_it_button(ai_settings, mouse_x, mouse_y, about_it_button, stats, screen)
     check_back_button(ai_settings, mouse_x, mouse_y, stats, back_button)
     check_exit_button(ai_settings, mouse_x, mouse_y, stats, exit_button)
 
@@ -155,7 +158,7 @@ def check_play_button(stats, play_button, mouse_x, mouse_y, ship, aliens, bullet
         start_game(stats, aliens, ai_settings, screen, ship, sb)
 
 
-def check_about_it_button(ai_settings, mouse_x, mouse_y, about_it_button, stats):
+def check_about_it_button(ai_settings, mouse_x, mouse_y, about_it_button, stats, screen):
     """Проверка нажатия мышью кнопки About It"""
     # флаг нажатия кнопки мыши в пределах кнопки About It
     button_clicked = about_it_button.rect.collidepoint(mouse_x, mouse_y)
@@ -165,6 +168,7 @@ def check_about_it_button(ai_settings, mouse_x, mouse_y, about_it_button, stats)
         ai_settings.button_clicked_sound.play()
         # переход игры в состояние, в котором отображается описание игры
         stats.press_about_it_button = True
+
 
 
 def check_back_button(ai_settings, mouse_x, mouse_y, stats, back_button):
@@ -271,7 +275,7 @@ def start_game(stats, aliens, ai_settings, screen, ship, sb):
     # остановка мелодии главного меню
     pygame.mixer.music.stop()
     # вызов функции для проигрывания фоновой музыки боя
-    play_music(ai_settings.battle_music)
+    play_background_music(ai_settings.battle_music)
     # вызов функции для отрисовки статистических данных (счет, рекорд, уровень, оставшиеся корабли) в виде изображений
     sb.prep_images()
     # переход игры в активный режим
@@ -429,7 +433,7 @@ def check_keydown_events_for_pause(ai_settings, event, stats, pause):
         # остановка проигрывания звука для паузы
         ai_settings.pause_sound.stop()
         # вызов функции для проигрывания фоновой музыки главного меню
-        play_music(ai_settings.main_menu_music)
+        play_background_music(ai_settings.main_menu_music)
         # проигрывание музыки для главного меню
         pygame.mixer.music.play()
         # сброс статистики
@@ -470,7 +474,7 @@ def exit_from_pause_to_active_game(pause, stats):
 
 def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button, game_title,
                   sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs,
-                  alien_bullets):
+                  alien_bullets, description_text_surfaces, description_image_ships_surface):
     """Обновляет экран и показывает всё содержимоё на нём"""
     # вариант заполнения экрана сплошным цветом фона
     # screen.fill(ai_settings.bg_color)
@@ -505,8 +509,9 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     if not stats.game_active:
         # действия во время неактивной игры при переходе в меню описания
         if stats.press_about_it_button:
+            show_game_description(screen, description_text_surfaces, description_image_ships_surface)
             # текст описания игры
-            hint_for_about_it_button.blitme()
+            #hint_for_about_it_button.blitme()
             # отображения кнопки "Back" для возврата в главное меню
             back_button.draw_button()
         # действия во время неактивной игры при отсутствии перехода в меню описания
@@ -539,6 +544,128 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
 
     # обновление окна
     pygame.display.flip()
+
+
+def show_game_description(screen, description_text_surfaces, description_image_ships_surface):
+    """"""
+    title_font = pygame.font.SysFont('arialblack', 48)
+    title_text = "Правила игры"
+    title_surface = title_font.render(title_text, True, 'white')
+    title_surface.set_alpha(255)
+    title_rect = title_surface.get_rect(center=(screen.get_width()//2, 70))
+    screen.blit(title_surface, title_rect)
+
+    #description_surfaces = prepare_text_surfaces()
+    # задание расположения поверхности с текстом описания игры на основном экране
+    screen.blit(description_text_surfaces, (50, 100))
+    screen.blit(description_image_ships_surface, (150, 350))
+    #y_offset = 100
+    #for line_surface in description_surfaces:
+    #    screen.blit(line_surface, (50, y_offset))
+    #    y_offset += line_surface.get_height() + 30
+    #    print('end')
+    #pygame.display.flip()
+    #with open('description.txt', 'r', encoding='utf-8') as file:
+    #    game_description = file.readlines()
+#
+    #y_offset = 100
+    #for line in game_description:
+    #    line_font = pygame.font.SysFont('calibri', 20)
+    #    line_surface = line_font.render(line.strip(), True, 'white')
+    #    line_rect = line_surface.get_rect(center=(450, y_offset))
+    #    screen.blit(line_surface, line_rect)
+    #    y_offset += 30
+    #print('END')
+
+
+def prepare_text_surfaces():
+    """"""
+    # задание стиля текста строк
+    line_font = pygame.font.SysFont('arial', 24)
+    # создание пустого массива для готовых рендеренных строк
+    line_surfaces =[]
+    # задание переменной для подсчета максимальной длины строки
+    max_line_width = 0
+    # подсчет высоты строки
+    max_line_height = line_font.get_height()+10
+
+    # открытие файла с текстом описания игры
+    with open('description.txt', 'r', encoding='utf-8') as file:
+        # чтение текста из файла по строкам
+        game_description = file.readlines()
+    # перебор каждой строки
+    for line in game_description:
+        # создание рендера строки без лишних пробелов белого цвета
+        line_surface = line_font.render(line.strip(), True, 'white')
+        # добавление рендера строки в массив
+        line_surfaces.append(line_surface)
+        # проверка длины рендера строки для поиска максимальной
+        if line_surface.get_width() > max_line_width:
+            # обновление максимальной длины рендера строки
+            max_line_width = line_surface.get_width()
+
+
+    # подсчет высоты для общей поверхности, вмещающей все строки
+    surface_height = max_line_height*len(line_surfaces)
+    # создание общей поверхности длиной максимальной строки текста и вычисленной высоты
+    text_surface = pygame.Surface((max_line_width, surface_height), pygame.SRCALPHA)
+    text_surface = text_surface.convert_alpha()
+
+    # задание отступа по оси Y относительно новой поверхности
+    y_offset = 0
+    # для каждой рендеренной строки из массива рендера строк
+    for line_surface in line_surfaces:
+        # отрисовка каждой строки на заданной поверхности
+        text_surface.blit(line_surface, (0, y_offset))
+        # задание нового отступа
+        y_offset += max_line_height
+    #print(max_line_width)
+    #print(len(line_surfaces))
+    #print(surface_height)
+    return text_surface
+
+
+def prepare_images_ships_surface(ai_settings, ships):
+    """"""
+    images_surface_width = 0
+    images_surface_height = 0
+    description_image_surface_max_width = 0
+    description_line_image = pygame.font.SysFont('arial', 26)
+    print(pygame.font.get_fonts())
+    description_line_image_surfaces = []
+
+    ships_info = {
+        'ship1' : {'image' : ships.sprites()[0].image, 'description' : ai_settings.description_first_ship},
+        'ship2': {'image': ships.sprites()[1].image, 'description': ai_settings.description_second_ship},
+        'ship3': {'image': ships.sprites()[2].image,'description': ai_settings.description_third_ship}
+    }
+
+    images_surface_width = ships_info['ship1']['image'].get_width()
+
+    for ship_key, ship_data in ships_info.items():
+        images_surface_height += ship_data['image'].get_height() + 20
+        description_line_image_surface = description_line_image.render(ship_data['description'].strip(), True, 'white')
+        description_line_image_surfaces.append(description_line_image_surface)
+
+        if description_line_image_surface.get_width() > description_image_surface_max_width:
+            description_image_surface_max_width = description_line_image_surface.get_width()
+
+    images_surface_width +=  description_image_surface_max_width + 20
+    print(description_image_surface_max_width)
+
+    images_surface = pygame.Surface((images_surface_width, images_surface_height), pygame.SRCALPHA)
+    images_surface = images_surface.convert_alpha()
+
+    y_offset = 0
+    for ship_key, ship_image in ships_info.items():
+        images_surface.blit(ship_image['image'], (0, y_offset))
+        y_offset += 100
+
+    y_offset = ships_info['ship1']['image'].get_height()/2
+    for description_line_image_surface in description_line_image_surfaces:
+        images_surface.blit(description_line_image_surface, (100,y_offset))
+        y_offset += 100
+    return images_surface
 
 
 def create_gradient(width, height):
@@ -641,9 +768,6 @@ def handle_collision(collisions, ai_settings, screen, explosions, stats, sb, ali
                 alien.kill()
             # вызов функции для создания эффекта взрыва конкретного корабля
             create_explosion(explosions, ai_settings, screen, alien, for_alien=True)
-            # проигрывание звука выстрела пришельца
-            ai_settings.explosion_sound.set_volume(0.5)
-            ai_settings.explosion_sound.play()
         # вызов функции для обновления счета игры и проверки рекорда
         update_score(ai_settings, stats, aliens, sb)
 
@@ -656,6 +780,9 @@ def create_explosion(explosions, ai_settings, screen, game_ship, for_alien=False
     # создание экземпляра взрыва по координатам корабля игрока
     else:
         explosion = Explosion(ai_settings, screen, game_ship)
+    # проигрывание звука выстрела пришельца
+    ai_settings.explosion_sound.set_volume(0.5)
+    ai_settings.explosion_sound.play()
     # добавление экземпляра в группу
     explosions.add(explosion)
 
@@ -666,6 +793,8 @@ def update_score(ai_settings, stats, aliens, sb, for_bullets=False):
     if for_bullets:
         # фиксированное увеличение счета игры
         stats.score += ai_settings.bullet_score
+        # проигрывание звука попадания снарядов друг в друга
+        ai_settings.bullet_shot_bullet_sound.play()
     else:
         # увеличение значения счёта, который учитывает все попадания одного снаряда
         stats.score += ai_settings.alien_points * len(aliens)
@@ -934,8 +1063,6 @@ def show_ship_alien_explosion(explosions, ai_settings, screen, collide_alien, sh
     create_explosion(explosions, ai_settings, screen, ship)
     # сохранение двух последних эффектов в переменной
     last_two_explosions = explosions.sprites()[-2:]
-    # проигрывание звука столкновения кораблей
-    ai_settings.explosion_sound.play()
     # отображение двух последних эффектов взрыва
     for explosion in last_two_explosions:
         explosion.blitme()
@@ -966,8 +1093,6 @@ def check_alien_bullet_ship_collision(ai_settings, screen, ship, alien_bullets, 
     if collide_alien_bullet:
         create_explosion(explosions, ai_settings, screen, ship)
         last_explosion = explosions.sprites()[-1]
-        # проигрывание звука столкновения кораблей
-        ai_settings.explosion_sound.play()
         # отображение двух последних эффектов взрыва
         last_explosion.blitme()
         pygame.display.flip()
@@ -998,7 +1123,7 @@ def ship_hit(ai_settings, stats, ship, bullets, sb, alien_bullets, explosions, a
         # отображение курсора мыши
         pygame.mouse.set_visible(True)
         # вызов функции для проигрывания фоновой музыки главного меню
-        play_music(ai_settings.main_menu_music)
+        play_background_music(ai_settings.main_menu_music)
         # проигрывание музыки для главного меню
         pygame.mixer.music.play()
 
