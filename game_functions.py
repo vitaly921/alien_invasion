@@ -15,6 +15,7 @@ from explosion import Explosion, SmallExplosion
 from pygame._sprite import Group
 
 
+
 def create_ships(ai_settings, screen, ships):
     """Создание группы кораблей*"""
     # создание экземпляров кораблей и добавление их в группу
@@ -35,7 +36,8 @@ def play_background_music(music_path, loop=-1):
 
 
 def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
-                 sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions, ship_type):
+                 sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions, ship_type,
+                 hint_for_about_it_button):
     """Обработка событий в игре"""
     for event in pygame.event.get():
         # обработка события закрытия окна игры
@@ -57,7 +59,8 @@ def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button,
                                            about_it_button, back_button, exit_button)
         # обработка события движения курсора мыши
         elif event.type == pygame.MOUSEMOTION:
-            check_mouse_motion_events(ai_settings, event, play_button, about_it_button, exit_button, back_button)
+            check_mouse_motion_events(ai_settings, event, play_button, about_it_button, exit_button, back_button,
+                                      stats)
 
 
 def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stats, sb, pause, pause_button,
@@ -122,24 +125,33 @@ def check_mouse_button_down_events(stats, play_button, ship, aliens, bullets, ai
     check_exit_button(ai_settings, mouse_x, mouse_y, stats, exit_button)
 
 
-def check_mouse_motion_events(ai_settings, event, play_button, about_it_button, exit_button, back_button):
+def check_mouse_motion_events(ai_settings, event, play_button, about_it_button, exit_button, back_button,
+                              stats):
     """Функция для обработки события движения мыши"""
     # изменение цвета кнопок Play, About It, Exit, Back
-    change_color_button(ai_settings, event, play_button)
-    change_color_button(ai_settings, event, about_it_button)
-    change_color_button(ai_settings, event, exit_button)
-    change_color_button(ai_settings, event, back_button)
+    change_color_button(ai_settings, event, play_button, stats)
+    change_color_button(ai_settings, event, about_it_button, stats, about_it_button.msg)
+    change_color_button(ai_settings, event, exit_button, stats, exit_button.msg)
+    change_color_button(ai_settings, event, back_button, stats)
 
 
-def change_color_button(ai_settings, event, button):
+def change_color_button(ai_settings, event, button, stats, msg='Play'):
     """Изменение цвета кнопки при наведении на неё курсором мыши"""
     # при нахождении курсора мыши в пределах кнопки
     if button.rect.collidepoint(event.pos):
         # изменение цвета фона кнопки
         button.button_color = ai_settings.active_button_color
         button.prep_msg(button.msg)
+        if msg == 'Exit':
+            stats.motion_in_exit_button = True
+        elif msg == 'About It':
+            stats.motion_in_about_it_button = True
     # при выходе курсора за пределы кнопки
     else:
+        if msg == 'Exit':
+            stats.motion_in_exit_button = False
+        elif msg == 'About It':
+            stats.motion_in_about_it_button = False
         # задание стандартного цвета фона
         button.button_color = ai_settings.button_color
         button.prep_msg(button.msg)
@@ -474,7 +486,7 @@ def exit_from_pause_to_active_game(pause, stats):
 
 def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button, game_title,
                   sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs,
-                  alien_bullets, description_text_surfaces, description_image_ships_surface):
+                  alien_bullets, description_text_surfaces, description_image_ships_surface, hint_for_exit_button):
     """Обновляет экран и показывает всё содержимоё на нём"""
     # вариант заполнения экрана сплошным цветом фона
     # screen.fill(ai_settings.bg_color)
@@ -516,6 +528,15 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
             back_button.draw_button()
         # действия во время неактивной игры при отсутствии перехода в меню описания
         else:
+            if not stats.motion_in_about_it_button and not stats.motion_in_exit_button:
+                hint_for_play_button.blitme()
+            elif stats.motion_in_exit_button:
+                hint_for_exit_button.blitme()
+            elif stats.motion_in_about_it_button:
+                hint_for_about_it_button.blitme()
+                # отрисовка подсказки для начала игры
+                #hint_for_play_button.blitme()
+
             # очистка групп пришельцев, пуль, взрывов, центровка корабля
             aliens.empty()
             bullets.empty()
@@ -531,7 +552,7 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
             exit_button.draw_button()
             about_it_button.draw_button()
             # отрисовка подсказки для начала игры
-            hint_for_play_button.blitme()
+            #hint_for_play_button.blitme()
 
     # действия во время активной игры
     else:
