@@ -15,7 +15,6 @@ from explosion import Explosion, SmallExplosion
 from pygame._sprite import Group
 
 
-
 def create_ships(ai_settings, screen, ships):
     """Создание группы кораблей*"""
     # создание экземпляров кораблей и добавление их в группу
@@ -36,8 +35,7 @@ def play_background_music(music_path, loop=-1):
 
 
 def check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
-                 sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions, ship_type,
-                 hint_for_about_it_button):
+                 sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions, ship_type):
     """Обработка событий в игре"""
     for event in pygame.event.get():
         # обработка события закрытия окна игры
@@ -68,8 +66,11 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
     """Реагирует на нажатие клавиш"""
     # Обработка нажатия Escape
     if event.key == pygame.K_ESCAPE:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
         # вызов функции для сохранения рекорда игры
         save_record(stats)
+        sleep(0.3)
         # закрытие окна программы
         sys.exit()
 
@@ -91,12 +92,27 @@ def check_keydown_events(event, ai_settings, screen, ship, aliens, bullets, stat
     elif event.key == pygame.K_RSHIFT or event.key == pygame.K_LSHIFT:
         # вызов функции для сброса авиабомб
         drop_air_bomb(ai_settings, screen, ship, air_bombs, stats)
-        # обработка нажатия клавиш "Enter" во время неактивной игры
-    elif (event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER) and not stats.game_active:
+    # обработка нажатия клавиш "Enter" во время неактивной игры
+    elif ((event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER) and not stats.game_active and
+          not stats.press_about_it_button):
         # вызов функции для начала игры
         start_game(stats, aliens, ai_settings, screen, ship, sb)
+    # обработка нажатия клавиши "Backspace" во время неактивной игры в режиме просмотра информации
+    elif event.key == pygame.K_BACKSPACE and not stats.game_active and stats.press_about_it_button:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
+        # флаг состояния режима просмотра информации = False
+        stats.press_about_it_button = False
+    # обработка нажатия клавиши "F1" во время неактивной игры главного меню
+    elif event.key == pygame.K_F1 and not stats.game_active and not stats.press_about_it_button:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
+        # флаг состояния режима просмотра информации = True
+        stats.press_about_it_button = True
     # обработка нажатия клавиши "p" во время активной игры
     elif event.key == pygame.K_p and stats.game_active:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
         # вызов функции для задания паузы игры
         pause_game(ai_settings, ship, stats, pause, pause_button, hint_for_pause_button)
 
@@ -129,29 +145,46 @@ def check_mouse_motion_events(ai_settings, event, play_button, about_it_button, 
                               stats):
     """Функция для обработки события движения мыши"""
     # изменение цвета кнопок Play, About It, Exit, Back
-    change_color_button(ai_settings, event, play_button, stats)
-    change_color_button(ai_settings, event, about_it_button, stats, about_it_button.msg)
-    change_color_button(ai_settings, event, exit_button, stats, exit_button.msg)
-    change_color_button(ai_settings, event, back_button, stats)
+    change_color_button(ai_settings, event, play_button)
+    change_color_button(ai_settings, event, about_it_button)
+    change_color_button(ai_settings, event, exit_button)
+    change_color_button(ai_settings, event, back_button)
+    # изменение подсказок для кнопок About It, Exit
+    change_hint_button(event, exit_button, stats, exit_button.msg)
+    change_hint_button(event, about_it_button, stats, about_it_button.msg)
 
 
-def change_color_button(ai_settings, event, button, stats, msg='Play'):
-    """Изменение цвета кнопки при наведении на неё курсором мыши"""
+def change_hint_button(event, button, stats, msg='Play'):
+    """Функция изменения текста подсказок при наведении на кнопки"""
+    if button.rect.collidepoint(event.pos):
+        # если мышь наведена на кнопку "Exit"
+        if msg == 'Exit':
+            # изменение состояния флага движения курсора для этой кнопки
+            stats.motion_in_exit_button = True
+        # если мышь наведена на кнопку "About It"
+        elif msg == 'About It':
+            # изменение состояния флага движения курсора для этой кнопки
+            stats.motion_in_about_it_button = True
+    else:
+        if msg == 'Exit':
+            # изменение состояния флага движения курсора для этой кнопки
+            stats.motion_in_exit_button = False
+        # если мышь находится за пределами кнопки "About It"
+        elif msg == 'About It':
+            # изменение состояния флага движения курсора для этой кнопки
+            stats.motion_in_about_it_button = False
+
+
+def change_color_button(ai_settings, event, button):
+    """Изменение цвета кнопки при наведении на неё курсором мыши и подсказки"""
     # при нахождении курсора мыши в пределах кнопки
     if button.rect.collidepoint(event.pos):
         # изменение цвета фона кнопки
         button.button_color = ai_settings.active_button_color
         button.prep_msg(button.msg)
-        if msg == 'Exit':
-            stats.motion_in_exit_button = True
-        elif msg == 'About It':
-            stats.motion_in_about_it_button = True
-    # при выходе курсора за пределы кнопки
+
+    # при нахождении курсора за пределами кнопки
     else:
-        if msg == 'Exit':
-            stats.motion_in_exit_button = False
-        elif msg == 'About It':
-            stats.motion_in_about_it_button = False
         # задание стандартного цвета фона
         button.button_color = ai_settings.button_color
         button.prep_msg(button.msg)
@@ -271,7 +304,7 @@ def drop_air_bomb(ai_settings, screen, ship, air_bombs, stats):
         new_air_bomb = AirBomb(ai_settings, screen, ship)
         # добавление бомбы в список
         air_bombs.add(new_air_bomb)
-        # проигрывание звука падения авиабомбы и ргулировка громкости
+        # проигрывание звука падения авиабомбы и регулировка громкости
         ai_settings.ship_aviabomb_sound.set_volume(0.15)
         ai_settings.ship_aviabomb_sound.play()
 
@@ -431,11 +464,16 @@ def check_keydown_events_for_pause(ai_settings, event, stats, pause):
         ai_settings.pause_sound.stop()
     # случай нажатия клавиши Escape
     elif event.key == pygame.K_ESCAPE:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
+        sleep(0.3)
         # выход из игры
         pygame.quit()
         quit()
     # обработка нажатия клавиши Backspace
     elif event.key == pygame.K_BACKSPACE:
+        # звук нажатия на кнопку
+        ai_settings.button_clicked_sound.play()
         # флаг паузы переход в состояние False
         pause = False
         # изменение флага для разрешения проигрывания мелодии достижения рекорда игры
@@ -486,7 +524,8 @@ def exit_from_pause_to_active_game(pause, stats):
 
 def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button, game_title,
                   sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button, explosions, air_bombs,
-                  alien_bullets, description_text_surfaces, description_image_ships_surface, hint_for_exit_button):
+                  alien_bullets, description_text_surfaces, description_image_ships_surface, hint_for_exit_button,
+                  description_title_surface):
     """Обновляет экран и показывает всё содержимоё на нём"""
     # вариант заполнения экрана сплошным цветом фона
     # screen.fill(ai_settings.bg_color)
@@ -521,9 +560,9 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     if not stats.game_active:
         # действия во время неактивной игры при переходе в меню описания
         if stats.press_about_it_button:
-            show_game_description(screen, description_text_surfaces, description_image_ships_surface)
-            # текст описания игры
-            #hint_for_about_it_button.blitme()
+            # вызов функции для отображения описания игры
+            show_game_description(screen, description_title_surface, description_text_surfaces,
+                                  description_image_ships_surface)
             # отображения кнопки "Back" для возврата в главное меню
             back_button.draw_button()
         # действия во время неактивной игры при отсутствии перехода в меню описания
@@ -534,8 +573,6 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
                 hint_for_exit_button.blitme()
             elif stats.motion_in_about_it_button:
                 hint_for_about_it_button.blitme()
-                # отрисовка подсказки для начала игры
-                #hint_for_play_button.blitme()
 
             # очистка групп пришельцев, пуль, взрывов, центровка корабля
             aliens.empty()
@@ -551,8 +588,6 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
             play_button.draw_button()
             exit_button.draw_button()
             about_it_button.draw_button()
-            # отрисовка подсказки для начала игры
-            #hint_for_play_button.blitme()
 
     # действия во время активной игры
     else:
@@ -567,43 +602,35 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
     pygame.display.flip()
 
 
-def show_game_description(screen, description_text_surfaces, description_image_ships_surface):
-    """"""
-    title_font = pygame.font.SysFont('arialblack', 48)
-    title_text = "Правила игры"
-    title_surface = title_font.render(title_text, True, 'white')
-    title_surface.set_alpha(255)
-    title_rect = title_surface.get_rect(center=(screen.get_width()//2, 70))
-    screen.blit(title_surface, title_rect)
-
-    #description_surfaces = prepare_text_surfaces()
-    # задание расположения поверхности с текстом описания игры на основном экране
+def show_game_description(screen, description_title_surface, description_text_surfaces, description_image_ships_surface):
+    """Функция для отображения готовых блоков описания игры в меню описания"""
+    # отображение и задание расположения поверхности с текстом заглавия описания
+    screen.blit(description_title_surface, (500,15))
+    # отображение и задание расположения поверхности с основным текстом описания игры
     screen.blit(description_text_surfaces, (50, 100))
+    # отображение и задание расположения поверхности с изображениями и текстом описания кораблей игрока
     screen.blit(description_image_ships_surface, (150, 350))
-    #y_offset = 100
-    #for line_surface in description_surfaces:
-    #    screen.blit(line_surface, (50, y_offset))
-    #    y_offset += line_surface.get_height() + 30
-    #    print('end')
-    #pygame.display.flip()
-    #with open('description.txt', 'r', encoding='utf-8') as file:
-    #    game_description = file.readlines()
-#
-    #y_offset = 100
-    #for line in game_description:
-    #    line_font = pygame.font.SysFont('calibri', 20)
-    #    line_surface = line_font.render(line.strip(), True, 'white')
-    #    line_rect = line_surface.get_rect(center=(450, y_offset))
-    #    screen.blit(line_surface, line_rect)
-    #    y_offset += 30
-    #print('END')
+
+
+def prepare_title_surfaces():
+    """Функция создания блока заглавия описания"""
+    # задание размера и шрифта
+    title_font = pygame.font.SysFont('arialblack', 48)
+    # задание надписи
+    title_text = "Правила игры"
+    # формирование изображения с белым текстом
+    title_surface = title_font.render(title_text, True, 'white')
+    # регулировка прозрачности
+    title_surface.set_alpha(255)
+    # возврат поверхности
+    return title_surface
 
 
 def prepare_text_surfaces():
-    """"""
+    """Функция создания блока основного текста описания"""
     # задание стиля текста строк
     line_font = pygame.font.SysFont('arial', 24)
-    # создание пустого массива для готовых рендеренных строк
+    # создание пустого массива для готовых изображений строк
     line_surfaces =[]
     # задание переменной для подсчета максимальной длины строки
     max_line_width = 0
@@ -616,15 +643,14 @@ def prepare_text_surfaces():
         game_description = file.readlines()
     # перебор каждой строки
     for line in game_description:
-        # создание рендера строки без лишних пробелов белого цвета
+        # создание изображения строки без лишних пробелов белого цвета
         line_surface = line_font.render(line.strip(), True, 'white')
-        # добавление рендера строки в массив
+        # добавление изображения строки в массив
         line_surfaces.append(line_surface)
-        # проверка длины рендера строки для поиска максимальной
+        # проверка длины изображения строки для поиска максимальной
         if line_surface.get_width() > max_line_width:
-            # обновление максимальной длины рендера строки
+            # обновление максимальной длины изображения строки
             max_line_width = line_surface.get_width()
-
 
     # подсчет высоты для общей поверхности, вмещающей все строки
     surface_height = max_line_height*len(line_surfaces)
@@ -634,58 +660,73 @@ def prepare_text_surfaces():
 
     # задание отступа по оси Y относительно новой поверхности
     y_offset = 0
-    # для каждой рендеренной строки из массива рендера строк
+    # для каждого изображения строки из массива изображений
     for line_surface in line_surfaces:
         # отрисовка каждой строки на заданной поверхности
         text_surface.blit(line_surface, (0, y_offset))
         # задание нового отступа
         y_offset += max_line_height
-    #print(max_line_width)
-    #print(len(line_surfaces))
-    #print(surface_height)
+    # возврат готовой поверхности с текстом
     return text_surface
 
 
 def prepare_images_ships_surface(ai_settings, ships):
-    """"""
+    """Функция создания блока изображений кораблей с их текстовым описанием"""
+    # задание начальной длины общей поверхности
     images_surface_width = 0
+    # задание начальной высоты общей поверхности
     images_surface_height = 0
+    # задание начальной длины поверхности текста описания изображения
     description_image_surface_max_width = 0
+    # задание стиля для текста описания изображения
     description_line_image = pygame.font.SysFont('arial', 26)
-    print(pygame.font.get_fonts())
+    #print(pygame.font.get_fonts())
+    # создание пустого массива для хранения изображений текстов описания кораблей
     description_line_image_surfaces = []
 
+    # загрузка в словарь данных кораблей игрока (изображения и текста описания)
     ships_info = {
         'ship1' : {'image' : ships.sprites()[0].image, 'description' : ai_settings.description_first_ship},
         'ship2': {'image': ships.sprites()[1].image, 'description': ai_settings.description_second_ship},
         'ship3': {'image': ships.sprites()[2].image,'description': ai_settings.description_third_ship}
     }
-
+    # подсчёт длины изображения корабля игрока (одинаков для всех изображений)
     images_surface_width = ships_info['ship1']['image'].get_width()
-
+    # для каждого ключа и значения словаря
     for ship_key, ship_data in ships_info.items():
+        # обновление высоты общей поверхности: высота изображения плюс отступ
         images_surface_height += ship_data['image'].get_height() + 20
+        # создания изображения текста описания корабля
         description_line_image_surface = description_line_image.render(ship_data['description'].strip(), True, 'white')
+        # добавление в массив изображений текстов описания кораблей
         description_line_image_surfaces.append(description_line_image_surface)
-
+        # проверка и обновление максимальной длины изображения текста описания корабля
         if description_line_image_surface.get_width() > description_image_surface_max_width:
             description_image_surface_max_width = description_line_image_surface.get_width()
-
+    # обновление длины общей поверхности с учетом отступа от изображения и максимальной длины текста описания
     images_surface_width +=  description_image_surface_max_width + 20
-    print(description_image_surface_max_width)
-
+    # формирование основной поверхности
     images_surface = pygame.Surface((images_surface_width, images_surface_height), pygame.SRCALPHA)
     images_surface = images_surface.convert_alpha()
 
+    # задание отступа по y
     y_offset = 0
+    # для каждого ключа и значения в словаре
     for ship_key, ship_image in ships_info.items():
+        # добавление на общую поверхность изображения кораблей с некоторым отступом
         images_surface.blit(ship_image['image'], (0, y_offset))
+        # увеличение отступа по y
         y_offset += 100
 
+    # обновление отступа по y для изображений текста описания
     y_offset = ships_info['ship1']['image'].get_height()/2
+    # для каждого текста описания из массива
     for description_line_image_surface in description_line_image_surfaces:
+        # добавление на общую поверхность изображения текста описания с некоторым отступом
         images_surface.blit(description_line_image_surface, (100,y_offset))
+        # увеличение отступа по y
         y_offset += 100
+    # возврат общей поверхности
     return images_surface
 
 

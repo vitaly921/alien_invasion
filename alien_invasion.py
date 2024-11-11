@@ -64,10 +64,13 @@ def run_game():
     # создание группы звезд на экране
     gf.create_stars(ai_settings, screen, stars)
 
+    # создание подсказок для кнопок "Play", "Pause", "About It", "Exit"
     hint_for_play_button = Hint(ai_settings.hint_for_play_button, screen, 1, 0.9)
     hint_for_pause_button = Hint(ai_settings.hint_for_pause_button, screen, 1, 1.5)
-    hint_for_about_it_button = Hint('Это игра про какую-то дич', screen, 1, 0.9)
-    hint_for_exit_button = Hint('Будет выход из игры>', screen, 1, 0.9)
+    hint_for_about_it_button = Hint(ai_settings.hint_for_about_it_button, screen, 1, 0.9)
+    hint_for_exit_button = Hint(ai_settings.hint_for_exit_button, screen, 1, 0.9)
+    # создание описания игры (текстового и текстового с изображениями)
+    description_title_surface = gf.prepare_title_surfaces()
     description_text_surfaces = gf.prepare_text_surfaces()
     description_image_ships_surface = gf.prepare_images_ships_surface(ai_settings, ships)
 
@@ -81,8 +84,7 @@ def run_game():
     while True:
         # обработка событий
         gf.check_events(ai_settings, screen, ship, aliens, bullets, stats, play_button, pause_button, about_it_button,
-                        sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions, number_ship,
-                        hint_for_about_it_button)
+                        sb, pause, hint_for_pause_button, back_button, exit_button, air_bombs, explosions, number_ship)
 
         # действия только во время активного состояния игры
         if stats.game_active:
@@ -102,7 +104,7 @@ def run_game():
         gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play_button, about_it_button,
                          game_title, sb, hint_for_play_button, hint_for_about_it_button, back_button, exit_button,
                          explosions, air_bombs, alien_bullets, description_text_surfaces, description_image_ships_surface,
-                         hint_for_exit_button)
+                         hint_for_exit_button, description_title_surface)
         #clock.tick(300)
 
 # запуск игры

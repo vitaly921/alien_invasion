@@ -103,8 +103,11 @@ class Settings:
         self.button_text_type = None
 
         # тексты подсказок
-        self.hint_for_play_button = 'To start the game, press "Enter" on the keyboard or mouse on the "Play" button'
-        self.hint_for_pause_button = 'To continue the game, press "Space"/ "Enter" on the keyboard or click on the Pause button'
+        self.hint_for_play_button = 'Press the "Play" button or "Enter" to start the new game'
+        self.hint_for_pause_button = ('Press the "Pause" button or "Space/Enter" to continue the game or "Backspace"'
+                                      ' to exit')
+        self.hint_for_about_it_button = 'Press the "About it" button or "F1" to display information about the game'
+        self.hint_for_exit_button = 'Press "Exit" button or "Esc" to exit the game'
 
     def initialize_dynamic_settings(self):
         """Инициализация настроек, изменяющихся по ходу игры"""

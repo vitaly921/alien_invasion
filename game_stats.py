@@ -12,11 +12,13 @@ class GameStats:
         self.game_active = False
         # флаг нажатия кнопки "About It"
         self.press_about_it_button = False
-        #
+        # флаг движения в границах кнопки "About It"
         self.motion_in_about_it_button = False
+        # флаг движения в границах кнопки "Exit"
         self.motion_in_exit_button = False
+        # флаг движения в границах кнопки "Play"
         self.motion_in_play_button = True
-        #
+        # флаг достижения нового рекорда
         self.new_high_score_reached = False
         # получение значения рекорда из файла
         with open('record.txt', 'r') as f:
