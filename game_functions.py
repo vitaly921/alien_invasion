@@ -1,6 +1,7 @@
 import random
 import sys
 import pygame
+import math
 from time import sleep, time
 from random import randint
 
@@ -785,7 +786,7 @@ def check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bu
     # обработка столкновений пуль с пришельцами: при столкновении удаляется и пуля и пришелец
     bullets_aliens_collisions = pygame.sprite.groupcollide(bullets, aliens, True, False)
     # обработка столкновений авиабомб с пришельцами: при столкновении удаляются только пришельцы
-    air_bombs_aliens_collisions = pygame.sprite.groupcollide(air_bombs, aliens, False, True)
+    air_bombs_aliens_collisions = pygame.sprite.groupcollide(air_bombs, aliens, True, True)
     # обработка столкновения пули игрока с пулей пришельца: взаимное уничтожение
     bullets_collision = pygame.sprite.groupcollide(bullets, alien_bullets, True, True)
 
@@ -795,6 +796,19 @@ def check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bu
         handle_collision(bullets_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens)
     # для случая столкновения авиабомб с пришельцами
     elif air_bombs_aliens_collisions:
+        for air_bomb, collide_alien in air_bombs_aliens_collisions.items():
+            explosion_center_x = air_bomb.rect.centerx
+            explosion_center_y = air_bomb.rect.centery
+            print(f'Center Explosion: ({explosion_center_x}, {explosion_center_y})')
+
+            for alien in aliens:
+                alien_center_x = alien.rect.centerx
+                alien_center_y = alien.rect.centery
+
+                distance = math.sqrt((alien_center_x - explosion_center_x)**2 + (alien_center_y - explosion_center_y)**2)
+                if distance <= 100:
+                    create_explosion(explosions, ai_settings, screen, alien, for_alien=True)
+                    aliens.remove(alien)
         # дальнейшая обработка
         handle_collision(air_bombs_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens)
     # для случая столкновения снарядов корабля и пришельца друг с другом
