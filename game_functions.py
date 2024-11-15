@@ -5,7 +5,7 @@ import math
 from time import sleep, time
 from random import randint
 
-from Tools.demo.spreadsheet import center
+#from Tools.demo.spreadsheet import center
 
 from bullet import Bullet, ShipBullet, AlienBullet
 from air_bomb import AirBomb
@@ -789,49 +789,48 @@ def check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bu
     air_bombs_aliens_collisions = pygame.sprite.groupcollide(air_bombs, aliens, True, True)
     # обработка столкновения пули игрока с пулей пришельца: взаимное уничтожение
     bullets_collision = pygame.sprite.groupcollide(bullets, alien_bullets, True, True)
-
+    # задание количества уничтоженных пришельцев
+    count_destroyed_aliens = 0
     # для случая столкновения пуль с пришельцами
     if bullets_aliens_collisions:
-        # дальнейшая обработка
-        handle_collision(bullets_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens)
+        # дальнейшая обработка и вычисление колва уничтоженных пришельцев за выстрел
+        count_destroyed_aliens = handle_collision(bullets_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens)
     # для случая столкновения авиабомб с пришельцами
     elif air_bombs_aliens_collisions:
-        for air_bomb, collide_alien in air_bombs_aliens_collisions.items():
-            explosion_center_x = air_bomb.rect.centerx
-            explosion_center_y = air_bomb.rect.centery
-            print(f'Center Explosion: ({explosion_center_x}, {explosion_center_y})')
-
-            for alien in aliens:
-                alien_center_x = alien.rect.centerx
-                alien_center_y = alien.rect.centery
-
-                distance = math.sqrt((alien_center_x - explosion_center_x)**2 + (alien_center_y - explosion_center_y)**2)
-                if distance <= 100:
-                    create_explosion(explosions, ai_settings, screen, alien, for_alien=True)
-                    aliens.remove(alien)
-        # дальнейшая обработка
-        handle_collision(air_bombs_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens)
+        # дальнейшая обработка и вычисление колва уничтоженных пришельцев за выстрел
+        count_destroyed_aliens = handle_collision(air_bombs_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens, True)
     # для случая столкновения снарядов корабля и пришельца друг с другом
     elif bullets_collision:
         # обновление счёта игры
         update_score(ai_settings, stats, aliens, sb, for_bullets=True)
     # для случая столкновения усиленных пуль с пришельцами
     elif boosted_bullets_aliens_collisions:
-        # дальнейшая обработка
-        handle_collision(boosted_bullets_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens)
+        # дальнейшая обработка и вычисление колва уничтоженных пришельцев за выстрел
+        count_destroyed_aliens = handle_collision(boosted_bullets_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens)
 
     # проверка полного уничтожения флота пришельцев
     check_destroy_aliens(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs, explosions, alien_bullets,
-                         bullets_aliens_collisions, air_bombs_aliens_collisions, boosted_bullets_aliens_collisions)
+                         bullets_aliens_collisions, air_bombs_aliens_collisions, boosted_bullets_aliens_collisions,
+                         count_destroyed_aliens)
 
-def handle_collision(collisions, ai_settings, screen, explosions, stats, sb, aliens):
-    """Функция для создания эффекта взрыва в месте столкновения и обновления счета"""
-    # для каждой пули / авиабомбы при столкновении
-    for bullet in collisions.copy():
-        # сохранение списка пришельцев, по которым попала пуля / авиабомба игрока
-        aliens = collisions[bullet]
-        # для каждого пришельца с которым столкнулась пуля / авиабомба
-        for alien in aliens:
+
+def handle_collision(collisions, ai_settings, screen, explosions, stats, sb, aliens, air_bomb_collision=False):
+    """Функция уничтожения кораблей пришельца, создания взрывов в этом месте и обновления счета"""
+    # создание пустого списка кораблей для уничтожения
+    destroyed_aliens = []
+    # для каждой пули/авиабомбы и списка пришельцев при столкновении
+    for bullet, hit_aliens in collisions.items():
+        # добавление в массив уничтоженных пришельцев в результате столкновения с пулей/авиабомбой
+        destroyed_aliens.extend(hit_aliens)
+        # для случая столкновения с авиабомбой
+        if air_bomb_collision:
+            # изменение переменной
+            air_bomb = bullet
+            # поиск дополнительных кораблей пришельцев в радиусе взрыва
+            destroyed_aliens = search_aliens_a_certain_radius(ai_settings, air_bomb, aliens, destroyed_aliens)
+
+        # для каждого пришельца в списке для уничтожения
+        for alien in destroyed_aliens:
             # проверка пришельца на принадлежность к классу "усиленных"
             if isinstance(alien, BoostedAlien):
                 # уменьшение прочности "усиленного" корабля пришельца
@@ -844,8 +843,29 @@ def handle_collision(collisions, ai_settings, screen, explosions, stats, sb, ali
                 alien.kill()
             # вызов функции для создания эффекта взрыва конкретного корабля
             create_explosion(explosions, ai_settings, screen, alien, for_alien=True)
-        # вызов функции для обновления счета игры и проверки рекорда
-        update_score(ai_settings, stats, aliens, sb)
+    # вызов функции для обновления счета игры и проверки рекорда
+    update_score(ai_settings, stats, destroyed_aliens, sb)
+    return len(destroyed_aliens)
+
+
+def search_aliens_a_certain_radius(ai_settings, air_bomb, aliens, destroyed_aliens):
+    """Функция поиска кораблей в определённом радиусе для их уничтожения"""
+    # вычисление центра взрыва авиабомбы
+    explosion_center_x = air_bomb.rect.centerx
+    explosion_center_y = air_bomb.rect.centery
+    # для каждого оставшегося пришельца в группе
+    for alien in aliens:
+        # вычисление центра корабля пришельца
+        alien_center_x = alien.rect.centerx
+        alien_center_y = alien.rect.centery
+        # вычисление дистанции между центром корабля пришельца и взрыва
+        distance = math.sqrt((alien_center_x - explosion_center_x) ** 2 + (alien_center_y - explosion_center_y) ** 2)
+        # если расстояние между точками меньше радиуса взрыва
+        if distance < ai_settings.air_bomb_radius_explosion:
+            # добавление в список пришельца для уничтожения
+            destroyed_aliens.append(alien)
+    # возврат дополненного списка кораблей для уничтожения
+    return destroyed_aliens
 
 
 def create_explosion(explosions, ai_settings, screen, game_ship, for_alien=False):
@@ -900,23 +920,25 @@ def check_high_score(ai_settings, stats, sb):
 
 
 def check_destroy_aliens(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs, explosions, alien_bullets,
-                         bullets_aliens_collisions, air_bombs_aliens_collisions, boosted_bullets_aliens_collisions):
+                         bullets_aliens_collisions, air_bombs_aliens_collisions, boosted_bullets_aliens_collisions,
+                         count_destroyed_aliens):
     """Функция для проверки полного уничтожения флота пришельцев и перехода на новый уровень игры"""
     # для случая отсутствия флота пришельцев после его уничтожения
     if len(aliens) == 0 and (bullets_aliens_collisions or air_bombs_aliens_collisions or boosted_bullets_aliens_collisions):
-        # вызов функции для отображения взрыва последнего корабля пришельца
-        show_last_alien_explosion(explosions)
+        # вызов функции для отображения последних взрывов пришельцев
+        show_last_alien_explosion(explosions, count_destroyed_aliens)
         # функция перехода на новый уровень игры
         start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs, explosions, alien_bullets)
 
 
-def show_last_alien_explosion(explosions):
-    """Функция для отображения эффекта взрыва последнего пришельца
+def show_last_alien_explosion(explosions, count_destroyed_aliens):
+    """Функция для отображения эффекта последних взрывов пришельцев
     при попадании по нему пули/авиабомбы"""
-    # сохранение последнего эффекта взрыва
-    last_explosion = explosions.sprites()[-1:]
-    # отображение последнего эффекта взрыва
-    last_explosion[0].blitme()
+    # сохранение последних эффектов взрывов
+    last_explosions = explosions.sprites()[-int(count_destroyed_aliens):]
+    # отображение последних эффектов взрывов
+    for last_explosion in last_explosions:
+        last_explosion.blitme()
     # обновление экрана
     pygame.display.flip()
 

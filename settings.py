@@ -119,6 +119,8 @@ class Settings:
         self.alien_bullet_speed_factor = 5
         # задание начальной скорости полета авиабомбы
         self.air_bomb_speed_factor = 7
+        # радиус взрыва для авиабомбы
+        self.air_bomb_radius_explosion = 100
         # задание начальной скорости кораблей пришельцев
         self.alien_speed_factor = 5
         # стартовые очки за пришельца
@@ -135,5 +137,6 @@ class Settings:
         self.alien_speed_factor *= self.speedup_scale
         self.alien_points *= self.score_scale
         self.count_boosted_aliens += 2
-        self.air_bomb_speed_factor *= 1
+        self.air_bomb_speed_factor *= 1.25
+        self.air_bomb_radius_explosion += 10
 
