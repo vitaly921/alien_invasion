@@ -257,30 +257,37 @@ def fire_bullet(ai_settings, screen, ship, bullets, stats, explosions, ship_type
         # если кол-во пуль меньше максимально допустимого значения для первого корабля и игра в активном состоянии
         if len(bullets) < ai_settings.bullets_allowed_for_first_ship and stats.game_active:
             # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
-            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, play_sound=True)
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions,
+                                                    play_sound=True)
 
     # если текущий корабль второй
     elif ship_type == 1:
         # если кол-во пуль меньше максимально допустимого значения для второго корабля и игра в активном состоянии
         if len(bullets) < ai_settings.bullets_allowed_for_second_ship and stats.game_active:
             # вызов функции для создания эффекта выстрела в левой части корабля
-            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left', play_sound=True)
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions,
+                                                    shot_location='left', play_sound=True)
             # вызов функции для создания эффекта выстрела в правой части корабля
-            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions,
+                                                    shot_location='right')
 
     # если текущий корабль третий
     elif ship_type == 2:
         # если кол-во пуль меньше максимально допустимого значения для третьего корабля и игра в активном состоянии
         if len(bullets) < ai_settings.bullets_allowed_for_third_ship and stats.game_active:
             # вызов функции для создания эффекта выстрела в левой части корабля
-            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='left')
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions,
+                                                    shot_location='left')
             # вызов функции для создания эффекта выстрела в центре корабля (по-умолчанию)
-            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, boosted=True, play_sound=True)
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions,
+                                                    boosted=True, play_sound=True)
             # вызов функции для создания эффекта выстрела в правой части корабля
-            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='right')
+            create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions,
+                                                    shot_location='right')
 
 
-def create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions, shot_location='center', boosted=False, play_sound=False):
+def create_ship_bullet_and_small_explosions(ai_settings, screen, ship, ship_type, bullets, explosions,
+                                            shot_location='center', boosted=False, play_sound=False):
     """Создание эффекта выстрела в заданном месте корабля"""
     # создание новой пули корабля в заданном месте
     new_bullet = ShipBullet(ai_settings, screen, ship, ship_type, shot_location, boosted)
@@ -698,7 +705,8 @@ def prepare_images_ships_surface(ai_settings, ships):
         # обновление высоты общей поверхности: высота изображения плюс отступ
         images_surface_height += ship_data['image'].get_height() + 20
         # создания изображения текста описания корабля
-        description_line_image_surface = description_line_image.render(ship_data['description'].strip(), True, 'white')
+        description_line_image_surface = description_line_image.render(ship_data['description'].strip(), True,
+                                                                       'white')
         # добавление в массив изображений текстов описания кораблей
         description_line_image_surfaces.append(description_line_image_surface)
         # проверка и обновление максимальной длины изображения текста описания корабля
@@ -794,11 +802,13 @@ def check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bu
     # для случая столкновения пуль с пришельцами
     if bullets_aliens_collisions:
         # дальнейшая обработка и вычисление колва уничтоженных пришельцев за выстрел
-        count_destroyed_aliens = handle_collision(bullets_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens)
+        count_destroyed_aliens = handle_collision(bullets_aliens_collisions, ai_settings, screen, explosions, stats, sb,
+                                                  aliens)
     # для случая столкновения авиабомб с пришельцами
     elif air_bombs_aliens_collisions:
         # дальнейшая обработка и вычисление колва уничтоженных пришельцев за выстрел
-        count_destroyed_aliens = handle_collision(air_bombs_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens, True)
+        count_destroyed_aliens = handle_collision(air_bombs_aliens_collisions, ai_settings, screen, explosions, stats,
+                                                  sb, aliens, True)
     # для случая столкновения снарядов корабля и пришельца друг с другом
     elif bullets_collision:
         # обновление счёта игры
@@ -806,7 +816,8 @@ def check_ship_projectiles_alien_collision(ai_settings, screen, ship, aliens, bu
     # для случая столкновения усиленных пуль с пришельцами
     elif boosted_bullets_aliens_collisions:
         # дальнейшая обработка и вычисление колва уничтоженных пришельцев за выстрел
-        count_destroyed_aliens = handle_collision(boosted_bullets_aliens_collisions, ai_settings, screen, explosions, stats, sb, aliens)
+        count_destroyed_aliens = handle_collision(boosted_bullets_aliens_collisions, ai_settings, screen, explosions,
+                                                  stats, sb, aliens)
 
     # проверка полного уничтожения флота пришельцев
     check_destroy_aliens(aliens, bullets, ai_settings, stats, sb, screen, ship, air_bombs, explosions, alien_bullets,
@@ -1092,12 +1103,14 @@ def change_fleet_direction(ai_settings, aliens):
     ai_settings.fleet_direction *= -1
 
 
-def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, alien_bullets, sb, explosions, air_bombs):
+def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, bullets, alien_bullets, sb, explosions,
+                 air_bombs):
     """Обновление корабля на экране при столкновении с флотом пришельцев / достижения флотом нижнего края"""
     # обновление позиции корабля игрока
     ship.update()
     # проверка столкновения корабля игрока и пришельца
-    collision_with_alien = check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions, air_bombs, alien_bullets)
+    collision_with_alien = check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions,
+                                                       air_bombs, alien_bullets)
     # проверка достижения флотом пришельцев нижнего края экрана
     getting_bottom = check_aliens_bottom(ai_settings, stats, screen, ship, aliens, sb)
     # проверка попадания в корабль пули пришельца
@@ -1136,7 +1149,8 @@ def update_ships(ai_settings, stats, screen, number_ship, ships, ship, aliens, b
     return number_ship, ship
 
 
-def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions, air_bombs, alien_bullets):
+def check_ship_aliens_collision(ai_settings, stats, screen, ship, aliens, bullets, sb, explosions, air_bombs,
+                                alien_bullets):
     """Проверка и реакция на столкновение корабля с флотом пришельцев"""
     collide_alien = pygame.sprite.spritecollideany(ship, aliens)
     # если существует пришелец из группы, столкнувшийся с кораблём игрока
