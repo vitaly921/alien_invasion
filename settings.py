@@ -46,14 +46,15 @@ class Settings:
         self.image_third_ship = 'images/ship3.png'
         self.ship_width = 80
         self.ship_height = 80
+        self.description_title = 'Правила игры'
         self.description_first_ship = '''
-        Самый слабый корабль игрока. Вам придется внимательно целиться чтобы попасть по врагу 
+        Базовая единица. Обладает одним орудием для уничтожения врага.
         '''
         self.description_second_ship = '''
-        Классический середнячок. Два снаряда вылетают по бокам и позволяют расправиться с врагом быстрее
+        Классический середнячок. Две пушки по бокам увеличивают количество попаданий и общую эффективность
         '''
         self.description_third_ship = '''
-        Отчаянный случай. Тройной залп с экспериментальным снарядом, который прошибает все на своём пути
+        Ударный боец. Тройной залп с экспериментальным снарядом, который прошибает все на своём пути
         '''
 
 
@@ -87,7 +88,7 @@ class Settings:
         self.fleet_drop_speed = 20
 
         # темп ускорения игры
-        self.speedup_scale = 1.2
+        self.speedup_scale = 1.
         self.score_scale = 2
 
         # вызов функции, задающей динамически изменяющиеся настройки в начале игры
@@ -137,6 +138,6 @@ class Settings:
         self.alien_speed_factor *= self.speedup_scale
         self.alien_points *= self.score_scale
         self.count_boosted_aliens += 2
-        self.air_bomb_speed_factor *= 1.25
+        self.air_bomb_speed_factor *= 1.1
         self.air_bomb_radius_explosion += 10
 

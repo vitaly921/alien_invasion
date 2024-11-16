@@ -1,3 +1,11 @@
+# -------------------------------------------------
+# Название: Alien Invasion Game
+# Описание: The main file for managing the game logic
+# Автор: Vitaly Prikhodkov (prihodkov21vek@gmail.com)
+# Версия: 1.0
+# Дата создания: 2023-12-05
+# Последнее изменение: 2024-11-16
+
 import pygame
 from settings import Settings
 from ship import Ship
@@ -70,8 +78,8 @@ def run_game():
     hint_for_about_it_button = Hint(ai_settings.hint_for_about_it_button, screen, 1, 0.9)
     hint_for_exit_button = Hint(ai_settings.hint_for_exit_button, screen, 1, 0.9)
     # создание описания игры (текстового и текстового с изображениями)
-    description_title_surface = gf.prepare_title_surfaces()
-    description_text_surfaces = gf.prepare_text_surfaces()
+    description_title_surface = gf.prepare_title_surfaces(ai_settings)
+    description_text_surfaces = gf.prepare_text_surfaces(ai_settings)
     description_image_ships_surface = gf.prepare_images_ships_surface(ai_settings, ships)
 
     # проигрывание фоновой музыки главного меню

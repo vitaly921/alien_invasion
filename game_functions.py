@@ -606,19 +606,19 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, stats, play
 def show_game_description(screen, description_title_surface, description_text_surfaces, description_image_ships_surface):
     """Функция для отображения готовых блоков описания игры в меню описания"""
     # отображение и задание расположения поверхности с текстом заглавия описания
-    screen.blit(description_title_surface, (500,15))
+    screen.blit(description_title_surface, (500, 25))
     # отображение и задание расположения поверхности с основным текстом описания игры
     screen.blit(description_text_surfaces, (50, 100))
     # отображение и задание расположения поверхности с изображениями и текстом описания кораблей игрока
     screen.blit(description_image_ships_surface, (150, 350))
 
 
-def prepare_title_surfaces():
+def prepare_title_surfaces(ai_settings):
     """Функция создания блока заглавия описания"""
     # задание размера и шрифта
     title_font = pygame.font.SysFont('arialblack', 48)
     # задание надписи
-    title_text = "Правила игры"
+    title_text = ai_settings.description_title
     # формирование изображения с белым текстом
     title_surface = title_font.render(title_text, True, 'white')
     # регулировка прозрачности
@@ -627,7 +627,7 @@ def prepare_title_surfaces():
     return title_surface
 
 
-def prepare_text_surfaces():
+def prepare_text_surfaces(ai_settings):
     """Функция создания блока основного текста описания"""
     # задание стиля текста строк
     line_font = pygame.font.SysFont('arial', 24)
