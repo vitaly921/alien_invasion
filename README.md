@@ -13,6 +13,8 @@ After starting the game, we are greeted by the main menu screen, with the option
 When you click on the Start Game button, we go directly into battle.
 The gameplay involves the player shooting at alien ships, while the aliens return fire. (gif)
 
+![alt text](D:\Users\priho\PycharmProjects\alien_invasion\gif\main_menu.gif)
+
 To make the game not boring, I added various game elements and mechanisms to it:
 
 - A variety of game objects;   
