@@ -34,7 +34,7 @@ All game elements that affect the gameplay can be divided into two categories: s
 The player has the opportunity to play on 3 ships, each of which is better after destroying the previous one. Thus, the player has 3 attempts in one game. 
  Let's look at each of them:
 
-- ![ship1](https://github.com/vitaly921/alien_invasion/blob/master/images/ship1.png?raw=true)
+- (image1)
 
 The player's standard ship, equipped with one gun.
 
