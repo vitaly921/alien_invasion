@@ -1,6 +1,5 @@
 # Alien Invasion
 
----
 __Alien Invasion__ is a well-known game where the player must shoot down a fleet of alien ships.
 
 The game is based on a task 14-6 from Eric Mathis's [book](https://disk.yandex.ru/i/ttWTX-bEfT5LrQ) "Learning Python. Game programming, data visualization, web applications"
@@ -9,7 +8,6 @@ The goal of this game is to enhance practical programming abilities in Python.
 
 # Gameplay
 
----
 After starting the game, we are greeted by the main menu screen, with the option to start the game, view its rules and leave it
  
 When you click on the Start Game button, we go directly into battle.
@@ -20,7 +18,6 @@ The gameplay involves the player shooting at alien ships, while the aliens retur
 
 ## Key Features
 
----
 To make the game not boring, I added various game elements and mechanisms to it:
 
 - A variety of game objects;   
@@ -33,7 +30,6 @@ Let's consider each item separately!
 
 ### Game ships
 
----
 All game elements that affect the gameplay can be divided into two categories: **ships** and **shells**. These elements are different for the player and the aliens, which gives the game a special dynamic.
 
 
@@ -71,23 +67,22 @@ Each of them is capable of firing identical projectiles at the player.
 
 ### Projectiles
 
----
 Usually, the player shoots ordinary bullets that can destroy one alien. However, when he has a third ship at his
 disposal, he will receive a new gun with a special type of red projectile. This projectile is capable of shooting 
 through all the aliens it hits.
 
-|Image|Description|
-|--|--|
-| | |
-|||
+| Image                                                                                     | Description                                    |
+|-------------------------------------------------------------------------------------------|------------------------------------------------|
+| <img src="images/standart_bullet.png" alt="Описание изображения" width="37" height="47"/> | A standard projectile destroys one alien       |
+| <img src="images/boosted_bullet.png" alt="Описание изображения" width="37" height="47"/>  | Boosted projectile hits the entire alien fleet |
 
 <img src="gif/red_projectile.gif" alt="Описание изображения" width="600" height="300"/>
 
 In addition, a new type of weapon has been added to the game — an **aerial bomb**, available to all ships. 
 
-|Image|Description|
-|--|--|
-| | |
+| Image                                                                              |Description|
+|------------------------------------------------------------------------------------|--|
+| <img src="images/air_bomb.png" alt="Описание изображения" width="60" height="50"/> |An aerial bomb falls from above and destroys a group of aliens |
 It can be used if
 the player decides to bypass the alien fleet and attack them from above. Each aerial bomb is capable of destroying a 
 group of aliens. If it hits an armored alien, it will immediately destroy it, otherwise it will cause damage to it.
@@ -99,9 +94,9 @@ Alien ships, in turn, have one type of projectile that is equally fatal even wit
 the aliens periodically fire projectiles in random order, which guarantees return fire at the player until he completely
 destroys them.
 
-|Image|Description|
-|--|--|
-| | |
+| Image                                                                                  |Description|
+|----------------------------------------------------------------------------------------|--|
+| <img src="images/alien_bullet.png" alt="Описание изображения" width="40" height="60"/> |The alien's projectile destroys the player's ship with a single hit  |
 
 <img src="gif/alien_bullet.gif" alt="Описание изображения" width="600" height="300"/>
 
@@ -139,14 +134,46 @@ The higher the level of the game, the more points are awarded for each hit.
 
 ## Game States
 
----
-### Main Menu
-### Pause
-### Game process
+| Main Menu                                                                             | Game process                                                                             | Pause                                                                             | About It                                                                             |
+|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| <img src="images/main_menu.png" alt="Описание изображения" width="300" height="150"/> | <img src="images/game_process.png" alt="Описание изображения" width="300" height="150"/> | <img src="images/pause.png" alt="Описание изображения" width="300" height="150"/> | <img src="images/about_it.png" alt="Описание изображения" width="300" height="150"/> |
 
 ## Managing game objects
 
----
+For state **Main menu**:
+
+| Key       | Description|
+|-----------|------------|
+| Enter     |            |
+| Esc       |            |
+| F1        |            |
+
+
+For state **Game process**:
+
+| Key       | Description|
+|-----------|------------|
+| Esc       |            |
+| P         |            |
+| Shift     |            |
+| Space     |            |
+
+For state **Pause**:
+
+| Key           | Description|
+|---------------|------------|
+| Enter/P/Space |            |
+| Esc           |            |
+| Backspace     |            |
+
+
+For state **About It**:
+
+| Key       | Description |
+|-----------|-------------|
+| Esc       |             |
+| Backspace |             |
+
 
 ## Description of some mechanics
 
@@ -156,12 +183,47 @@ The higher the level of the game, the more points are awarded for each hit.
 
 This mechanic has been added to increase the unpredictability of the behavior of the following game elements:
 - the location of the stars in the sky (changes after each restart of the game);
+```python
+    star.x = randint(0, star.rect.width * 3) + randint(100, 250) * star_number
+    star.rect.x = star.x
+
+    star.y = randint(0, star.rect.height * 4) + randint(130, 200) * row_number
+    star.rect.y = star.y
+```
 - selection of boosted alien ships (changes with each level);
+```python
+    index_boosted_aliens = random.sample(range(number_aliens_x*number_rows_aliens), count_boosted_aliens)
+```
 - selection of shooting alien ships (changes cyclically every N seconds).
+```python
+    shooting_aliens = random.sample(aliens.sprites(), num_shooting_aliens)
+```
 
 ### The explosion of an air bomb in a certain radius
+To find out how many aliens were in the radius of the bomb explosion, a formula is used to calculate the distance
+between two points: the center of the bomb at the time of the explosion and the centers of all surviving aliens.
+
+The formula looks like this:
+
+<img src="images/formula.jpg" alt="Описание изображения" width="300" height="70"/>
+
+```python
+distance = math.sqrt((alien_center_x - explosion_center_x) ** 2 + (alien_center_y - explosion_center_y) ** 2)
+        if distance < ai_settings.air_bomb_radius_explosion:
+            destroyed_aliens.append(alien)
+```
 
 ### Building an alien fleet
+The formation of an alien fleet resembles the process of creating stars in the sky. However, unlike them, the 
+coordinates of the location of the ships are clearly defined and do not depend on chance.
+
+```python
+    alien.x = alien_width / 2 + 1.5 * alien_width * alien_number
+    alien.rect.x = alien.x
+    
+    alien.y = alien_height/2 + 1.5 * alien_height * row_number
+    alien.rect.y = alien.y
+```
 
 ### Hit points of the boosted alien
 
