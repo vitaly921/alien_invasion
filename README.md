@@ -14,7 +14,7 @@ When you click on the Start Game button, we go directly into battle.
 The gameplay involves the player shooting at alien ships, while the aliens return fire.
 
 
-<img src="gif/main_menu.gif" alt="Описание изображения" width="600" height="300"/>
+<img src="gif/main_menu.gif" alt="Описание изображения" width="600" height="300" align="middle"/>
 
 ## Key Features
 
@@ -83,6 +83,7 @@ In addition, a new type of weapon has been added to the game — an **aerial bom
 | Image                                                                              |Description|
 |------------------------------------------------------------------------------------|--|
 | <img src="images/air_bomb.png" alt="Описание изображения" width="60" height="50"/> |An aerial bomb falls from above and destroys a group of aliens |
+
 It can be used if
 the player decides to bypass the alien fleet and attack them from above. Each aerial bomb is capable of destroying a 
 group of aliens. If it hits an armored alien, it will immediately destroy it, otherwise it will cause damage to it.
@@ -132,47 +133,15 @@ The higher the level of the game, the more points are awarded for each hit.
 
 - if the alien fleet reaches the bottom edge of the screen, the all points gained disappear.
 
-## Game States
+## Control in different game states
 
-| Main Menu                                                                             | Game process                                                                             | Pause                                                                             | About It                                                                             |
-|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| <img src="images/main_menu.png" alt="Описание изображения" width="300" height="150"/> | <img src="images/game_process.png" alt="Описание изображения" width="300" height="150"/> | <img src="images/pause.png" alt="Описание изображения" width="300" height="150"/> | <img src="images/about_it.png" alt="Описание изображения" width="300" height="150"/> |
+| State        | Screenshot | Key                                 | Description                                                                                             |
+|--------------|----|-------------------------------------|---------------------------------------------------------------------------------------------------------|
+| Main menu    |<img src="images/main_menu.png" alt="Описание изображения" width="300" height="150"/>    | Enter<br/>Esc<br/>F1<br/>           | *The beginning of the game<br/>Exiting the game<br/>Viewing the rules of the game*                      |
+| Game process |<img src="images/game_process.png" alt="Описание изображения" width="300" height="150"/>| Space<br/>P<br/>Shift<br/>Esc       | *Shooting at aliens<br/>Pause the game<br/>Dropping an aerial bomb<br/>Exiting the game without saving* |
+| Pause        |<img src="images/pause.png" alt="Описание изображения" width="300" height="150"/>| Enter/P/Space<br/>Backspace<br/>Esc | *Exit the pause and continue the game<br/>Return to the main menu<br/>Exiting the game without saving*  |
+| About it     |<img src="images/about_it.png" alt="Описание изображения" width="300" height="150"/>| Backspace<br/>Esc                   | *Return to the main menu  <br/> Exiting the game*                                                       |
 
-## Managing game objects
-
-For state **Main menu**:
-
-| Key       | Description|
-|-----------|------------|
-| Enter     |            |
-| Esc       |            |
-| F1        |            |
-
-
-For state **Game process**:
-
-| Key       | Description|
-|-----------|------------|
-| Esc       |            |
-| P         |            |
-| Shift     |            |
-| Space     |            |
-
-For state **Pause**:
-
-| Key           | Description|
-|---------------|------------|
-| Enter/P/Space |            |
-| Esc           |            |
-| Backspace     |            |
-
-
-For state **About It**:
-
-| Key       | Description |
-|-----------|-------------|
-| Esc       |             |
-| Backspace |             |
 
 
 ## Description of some mechanics
@@ -226,19 +195,92 @@ coordinates of the location of the ships are clearly defined and do not depend o
 ```
 
 ### Hit points of the boosted alien
+In the game, alien ships of a certain color can be destroyed after several bullet hits or air bombs exploding next to
+them, except for a direct hit by an air bomb.  Thus, these aliens have a certain level of protection (the parameter can
+be adjusted), so they are called "boosted".
+
+``` python
+    def hit(self, ai_settings):
+        """Processing hits on an boosted alien"""
+        self.hits_count += 1
+        if self.hits_count == 1:
+            self.image = self.image_damaged
+        # if the number of hits exceeded the allowed limit
+        elif self.hits_count >= ai_settings.allowed_count_hits:
+            self.kill()
+```
 
 ### Background gradient
 
 ### Enhanced Player's Bullet
+For a change, a new, more powerful type of projectile has been added to the game. It will help the player to cope
+better with fast enemies.
+
+```python
+boosted_bullets_aliens_collisions = pygame.sprite.groupcollide(boosted_bullets, aliens, False, True)
+if boosted_bullets_aliens_collisions:
+        count_destroyed_aliens = handle_collision(boosted_bullets_aliens_collisions, ai_settings, screen, explosions,
+                                                  stats, sb, aliens)
+```
 
 ### The explosion effect
+In the game, the explosion of all ships is tied to their coordinates and disappears over time.
+
+```python
+ for explosion in explosions.sprites():
+        if current_time - explosion.creation_time >= ai_settings.explosion_duration:
+            explosion.kill()
+        else:
+            # calculating a variable to set the transparency effect over time
+            alpha = ((pygame.time.get_ticks() - explosion.creation_time) / ai_settings.explosion_duration *
+                     ai_settings.explosion_alpha)
+            # setting transparency before the end of the effect display time
+            explosion.image.set_alpha(255 - alpha)
+```
 
 ### The effect of the shot
+When the ship fires, a flame appears at the place of the shot. The flame belongs to the explosion class, is tied to a
+specific ship and disappears over time as a normal explosion.  
+
+```python
+    # создание эффекта выстрела в заданном месте
+    new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, shot_location)
+```
 
 ### The effect of star movement
+To create the effect of flying, randomly placed stars move in the background. After each one hits the bottom edge of
+the screen, it "invisibly" moves to the top.
+
+```python
+    for star in stars.sprites():
+        # when the top of the star reaches the bottom edge of the screen, the star moves up
+        if star.check_edges():
+            star.rect.top -= star.rect.bottom
+            star.y = star.rect.top
+            break
+```
 
 ### The movement of the alien fleet
+To make the game more dynamic, the alien fleet moves in different directions depending on the flag. When it reaches the
+left or right edge of the screen, it changes its direction and at the same time descends slightly, approaching the
+player.
 
+```python
+def check_fleet_edges(ai_settings, aliens):
+    """Checking if the fleet reaches the edge of the screen"""
+    for alien in aliens.sprites():
+        if alien.check_edges():
+            change_fleet_direction(ai_settings, aliens)
+            break
+
+
+def change_fleet_direction(ai_settings, aliens):
+    """Lowers the fleet down and changes the direction of its movement"""
+    for alien in aliens.sprites():
+        alien.rect.y += ai_settings.fleet_drop_speed
+    # changing the direction flag
+    ai_settings.fleet_direction *= -1
+```
 
 
 ## Setting up the game
