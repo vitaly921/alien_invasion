@@ -52,7 +52,7 @@ The player's ships can be destroyed in the following situations:
 
 3. when the alien fleet reaches the bottom of the screen.
 
----
+### Alien ships
 In turn, alien ships have three types:
 
 | Image | Description                                                  |
@@ -65,7 +65,7 @@ In turn, alien ships have three types:
 Each of them is capable of firing identical projectiles at the player.
 
 
-### Projectiles
+### Players projectiles
 
 Usually, the player shoots ordinary bullets that can destroy one alien. However, when he has a third ship at his
 disposal, he will receive a new gun with a special type of red projectile. This projectile is capable of shooting 
@@ -90,7 +90,7 @@ group of aliens. If it hits an armored alien, it will immediately destroy it, ot
 
 <img src="gif/air_bomb.gif" alt="Описание изображения" width="600" height="300"/>
 
---- 
+### Alien projectiles
 Alien ships, in turn, have one type of projectile that is equally fatal even with a single hit on the player. However,
 the aliens periodically fire projectiles in random order, which guarantees return fire at the player until he completely
 destroys them.
@@ -103,7 +103,6 @@ destroys them.
 
 ### Transitions to a new level
 
----
 The transition to a new level occurs after the player destroys the alien fleet. 
 When you move to a new level of the game, the difficulty increases. Here's how it happens:
 
@@ -123,7 +122,6 @@ the ship;
 
 ### Scoring and keeping the record
 
----
 In this game, points are awarded for each successful shot by the player at an alien ship or projectile. Not only direct
 hits are taken into account, but also shots fired with boosted bullets and aerial bombs. The record of the game is
 always displayed at the top of the window and saved in the .txt file of the project.
@@ -145,8 +143,9 @@ The higher the level of the game, the more points are awarded for each hit.
 
 
 ## Description of some mechanics
-
----
+Here I would like to talk in more detail about some interesting mechanics that, in my opinion, make the game more fun.
+Some of these mechanics were invented by me to complicate the gameplay. Each description of the mechanics is accompanied
+by an example of a piece of code that implements it.
 
 ### Using randomness
 
@@ -211,7 +210,26 @@ be adjusted), so they are called "boosted".
 ```
 
 ### Background gradient
+The game used the linear interpolation method, which allowed you to create smooth transitions between two colors on the
+entire screen. This method finds the intermediate shades between each pair of gradient points for each color channel.
 
+```python
+def create_gradient(width, height):
+    """Создание поверхности градиента из двух цветов"""
+    gradient_surface = pygame.Surface((width, height))
+    # начальный/конечный цвета градиента фона
+    start_color = (7, 16, 40)
+    end_color = (9, 114, 167)
+    # использование линейной интерполяции для нахождения промежуточного цвета для каждой строки
+    for y in range(height):
+        r = int(start_color[0] + (end_color[0] - start_color[0]) * (y / height))
+        g = int(start_color[1] + (end_color[1] - start_color[1]) * (y / height))
+        b = int(start_color[2] + (end_color[2] - start_color[2]) * (y / height))
+        # заполнение каждой строки поверхности промежуточным цветом
+        gradient_surface.fill((r, g, b), (0, y, width, 1))
+    # возврат градиентной поверхности
+    return gradient_surface
+```
 ### Enhanced Player's Bullet
 For a change, a new, more powerful type of projectile has been added to the game. It will help the player to cope
 better with fast enemies.
