@@ -215,19 +215,19 @@ entire screen. This method finds the intermediate shades between each pair of gr
 
 ```python
 def create_gradient(width, height):
-    """Создание поверхности градиента из двух цветов"""
+    """Creating a gradient surface from two colors  """
     gradient_surface = pygame.Surface((width, height))
-    # начальный/конечный цвета градиента фона
+    # creating a gradient surface from two colors  
     start_color = (7, 16, 40)
     end_color = (9, 114, 167)
-    # использование линейной интерполяции для нахождения промежуточного цвета для каждой строки
+    # using linear interpolation to find an intermediate color for each row 
     for y in range(height):
         r = int(start_color[0] + (end_color[0] - start_color[0]) * (y / height))
         g = int(start_color[1] + (end_color[1] - start_color[1]) * (y / height))
         b = int(start_color[2] + (end_color[2] - start_color[2]) * (y / height))
-        # заполнение каждой строки поверхности промежуточным цветом
+        # filling each row of the surface with an intermediate color 
         gradient_surface.fill((r, g, b), (0, y, width, 1))
-    # возврат градиентной поверхности
+    # return of the gradient surface 
     return gradient_surface
 ```
 ### Enhanced Player's Bullet
@@ -261,7 +261,7 @@ When the ship fires, a flame appears at the place of the shot. The flame belongs
 specific ship and disappears over time as a normal explosion.  
 
 ```python
-    # создание эффекта выстрела в заданном месте
+    # creating a shot effect in a given location 
     new_small_explosions = SmallExplosion(ai_settings, screen, ship, ship_type, shot_location)
 ```
 
@@ -302,19 +302,80 @@ def change_fleet_direction(ai_settings, aliens):
 
 
 ## Setting up the game
+At the moment, the developer has set the basic parameters of game objects and their behavior. However, the user can make
+their own changes using the file **settings.py** . By opening this file, the player will be able to easily understand which
+parameters remain unchanged and which change as the game level increases.
 
-___
+### Unchanged settings
+Unchanged settings include paths to images and sounds, sizes, colors, text data, and constant speed. These parameters
+are in the *Settings* class, and grouping variables by objects and their exact names helps the user to quickly navigate
+and experiment with the game. For example, here's what immutable alien settings look like:
+```python
+        # alien parameters
+        self.image_alien = 'images/alien.png'
+        self.image_boosted_alien = 'images/boosted_alien.png'
+        self.image_damaged_alien = 'images/damaged_alien.png'
+        self.alien_width = 60
+        self.alien_height = 40
+        # number of strength points of the "reinforced" alien
+        self.allowed_count_hits = 4
+```
+
+### Changeable settings 
+The changeable settings are defined in the *initialize_dynamic_settings()* function. Here, the initial values of
+parameters such as the speed of all objects, the radius of the explosion of an air bomb, points for destroying an alien,
+as well as the number of improved and shooting aliens are set.
+```python
+    def initialize_dynamic_settings(self):
+        """Initializing settings that change as the game progresses"""
+        # setting the initial speed of the player's ship 
+        self.ship_speed_factor = 4
+        # setting the initial velocity of the player's ship's bullet 
+        self.ship_bullet_speed_factor = 10
+        # setting the initial velocity of an alien bullet 
+        self.alien_bullet_speed_factor = 5
+        # setting the initial flight speed of an aerial bomb 
+        self.air_bomb_speed_factor = 7
+        # explosion radius for an aerial bomb 
+        self.air_bomb_radius_explosion = 100
+        # setting the initial velocity of the alien ships 
+        self.alien_speed_factor = 5
+        # starting points for the alien  
+        self.alien_points = 200
+        # the initial number of "boosted" aliens 
+        self.count_boosted_aliens = 2
+        # the number of shooting aliens 
+        self.count_shooting_aliens = 1
+        # the initial flag for setting the direction (at 1 - to the right, at -1 - to the left)  
+        self.fleet_direction = 1
+```
+As the game level increases, the *increase_speed()* function is called, which changes the values of dynamic parameters by
+a specific value set by the user, or by a formula.
+```python
+    def increase_speed(self, stats):
+        """Increasing the speed values of game objects"""
+        self.ship_speed_factor *= self.speedup_scale
+        self.ship_bullet_speed_factor *= self.speedup_scale
+        self.alien_speed_factor *= self.speedup_scale
+        self.alien_points *= self.score_scale
+        self.count_boosted_aliens += 2
+        self.count_shooting_aliens = (stats.level // 2) + 1
+        self.air_bomb_speed_factor *= 1.1
+        self.air_bomb_radius_explosion += 10
+```
 ## Using tools
 
----
-### Programming language 
-### Libraries
-### Development environment
-### Music 
-### Graphics
+| Category                       |                    Tool                                                                     |
+|-----------------------------|--------------------------------------------------------------------------------------------|
+| **Programming language**    | Python 3.6                                                                                 |
+| **Development environment** | PyCharm Education 2024.3                                                                   |
+| **Libraries**               | pygame, random, sys, math, time, hint                                                      |
+| **Musical accompaniment**   | Bfxr, Web: [Zvukipro](https://zvukipro.com/dendy/750-zvuki-iz-igry-tanchiki-na-dendi.html) |
+| **Graphic**                 | ShareX, Web: [Pixabay](https://pixabay.com/ru/)                                                        |
+
 
 
 
 ## Feedback
 
----
+To contact me, use email prihodkov21vek@gmail.com  

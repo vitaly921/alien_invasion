@@ -967,7 +967,7 @@ def start_new_level(aliens, bullets, ai_settings, stats, sb, screen, ship, air_b
     alien_bullets.empty()
 
     # вызов функции увеличения скорости игровых объектов
-    ai_settings.increase_speed()
+    ai_settings.increase_speed(stats)
     # увеличение уровня игры
     stats.level += 1
     # обновление изображения с уровнем игры
@@ -993,7 +993,7 @@ def check_location_ship(ship, aliens):
 def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bullets, stats, explosions):
     """Обновление позиций и кол-ва пуль пришельцев"""
     # вызов функции для выбора стреляющих кораблей пришельцев каждые n-секунд из оставшейся группы
-    last_shot_time, shooting_aliens = choice_shooting_aliens(stats, last_shot_time, aliens)
+    last_shot_time, shooting_aliens = choice_shooting_aliens(ai_settings, stats, last_shot_time, aliens)
 
     # если определены стреляющие корабли пришельцев
     if shooting_aliens:
@@ -1015,7 +1015,7 @@ def update_alien_bullets(ai_settings, screen, aliens, last_shot_time, alien_bull
     return last_shot_time
 
 
-def choice_shooting_aliens(stats, last_shot_time, aliens):
+def choice_shooting_aliens(ai_settings, stats, last_shot_time, aliens):
     """Выбор стреляющих кораблей каждые n-секунд"""
     # фиксация текущего момента времени
     current_time = time()
@@ -1025,7 +1025,8 @@ def choice_shooting_aliens(stats, last_shot_time, aliens):
         # время последнего выстрела равно фиксированному текущему времени
         last_shot_time = current_time
         # подсчет кол-ва одновременно стреляющих кораблей с учетом текущего уровня игры
-        num_shooting_aliens = (stats.level // 2) + 1
+        #num_shooting_aliens = (stats.level // 2) + 1
+        num_shooting_aliens = ai_settings.count_shooting_aliens
         # уточнение кол-ва стреляющих кораблей с учётом их уничтожения игроком
         # (кол-во стреляющих кораблей не может быть больше оставшихся кораблей)
         num_shooting_aliens = min(num_shooting_aliens, len(aliens))

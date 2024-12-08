@@ -46,6 +46,8 @@ class Settings:
         self.image_third_ship = 'images/ship3.png'
         self.ship_width = 80
         self.ship_height = 80
+
+        # параметры для меню описания
         self.description_title = 'Правила игры'
         self.description_first_ship = '''
         Базовая единица. Обладает одним орудием для уничтожения врага.
@@ -87,13 +89,6 @@ class Settings:
         #self.alien_speed_factor = 1.5
         self.fleet_drop_speed = 20
 
-        # темп ускорения игры
-        self.speedup_scale = 1.
-        self.score_scale = 2
-
-        # вызов функции, задающей динамически изменяющиеся настройки в начале игры
-        self.initialize_dynamic_settings()
-
         # параметры кнопок игры
         self.button_width = 250
         self.button_height = 65
@@ -109,6 +104,13 @@ class Settings:
                                       ' to exit')
         self.hint_for_about_it_button = 'Press the "About it" button or "F1" to display information about the game'
         self.hint_for_exit_button = 'Press "Exit" button or "Esc" to exit the game'
+
+        # темп ускорения игры
+        self.speedup_scale = 1.
+        self.score_scale = 2
+
+        # вызов функции, задающей динамически изменяющиеся настройки в начале игры
+        self.initialize_dynamic_settings()
 
     def initialize_dynamic_settings(self):
         """Инициализация настроек, изменяющихся по ходу игры"""
@@ -128,16 +130,19 @@ class Settings:
         self.alien_points = 200
         # начальное кол-во "усиленных" пришельцев
         self.count_boosted_aliens = 2
+        # количество стреляющих пришельцев
+        self.count_shooting_aliens = 1
         # начальный флаг задания направления (при 1 - вправо, при -1 -влево)
         self.fleet_direction = 1
 
-    def increase_speed(self):
+    def increase_speed(self, stats):
         """Увеличение значений скорости игровых объектов"""
         self.ship_speed_factor *= self.speedup_scale
         self.ship_bullet_speed_factor *= self.speedup_scale
         self.alien_speed_factor *= self.speedup_scale
         self.alien_points *= self.score_scale
         self.count_boosted_aliens += 2
+        self.count_shooting_aliens = (stats.level // 2) + 1
         self.air_bomb_speed_factor *= 1.1
         self.air_bomb_radius_explosion += 10
 
