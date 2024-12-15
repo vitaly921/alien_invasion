@@ -239,8 +239,7 @@ def check_exit_button(ai_settings, mouse_x, mouse_y, stats, exit_button):
         ai_settings.button_clicked_sound.play()
         # закрытие окна игры
         sleep(0.3)
-        pygame.quit()
-        quit()
+        sys.exit()
 
 
 def save_record(stats):
@@ -445,8 +444,7 @@ def check_events_for_pause(ai_settings, stats, pause_button, pause):
     for event in pygame.event.get():
         # обработка события выхода из игры
         if event.type == pygame.QUIT:
-            pygame.quit()
-            quit()
+            sys.exit()
         # обработка события нажатия клавиш
         elif event.type == pygame.KEYDOWN:
             # вызов функции обработки событий нажатия клавиш в режиме паузы с возвратом состояния паузы
@@ -476,8 +474,7 @@ def check_keydown_events_for_pause(ai_settings, event, stats, pause):
         ai_settings.button_clicked_sound.play()
         sleep(0.3)
         # выход из игры
-        pygame.quit()
-        quit()
+        sys.exit()
     # обработка нажатия клавиши Backspace
     elif event.key == pygame.K_BACKSPACE:
         # звук нажатия на кнопку
